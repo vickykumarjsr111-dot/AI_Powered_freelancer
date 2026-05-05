@@ -1,6 +1,6 @@
 import './Navbar.css';
 
-export default function Home() {
+export default function Home({ onNavigateToLogin }) {
   return (
     <div className="home-container">
       {/* Header */}
@@ -13,8 +13,8 @@ export default function Home() {
           <div className="nav-links">
             <a href="#features" className="nav-link">Features</a>
             <a href="#how-it-works" className="nav-link">How It Works</a>
-            <button className="btn-secondary">Login</button>
-            <button className="btn-primary">Get Started</button>
+            <button className="btn-secondary" onClick={onNavigateToLogin}>Login</button>
+            <button className="btn-primary" onClick={onNavigateToLogin}>Get Started</button>
           </div>
         </nav>
       </header>
@@ -38,10 +38,10 @@ export default function Home() {
           </p>
 
           <div className="hero-buttons">
-            <button className="btn-cta">
+            <button className="btn-cta" onClick={onNavigateToLogin}>
               Start as Freelancer <span className="btn-icon">→</span>
             </button>
-            <button className="btn-white">Hire Talent</button>
+            <button className="btn-white" onClick={onNavigateToLogin}>Hire Talent</button>
           </div>
         </div>
       </section>
@@ -107,7 +107,7 @@ export default function Home() {
             <p className="cta-description">
               Join thousands of freelancers and clients today.
             </p>
-            <button className="cta-button">Join Now - It's Free</button>
+            <button className="cta-button" onClick={onNavigateToLogin}>Join Now - It's Free</button>
           </div>
         </div>
       </section>
