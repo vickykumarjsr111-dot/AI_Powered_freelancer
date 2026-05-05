@@ -9,14 +9,14 @@
 html, body {
   margin: 0;
   padding: 0;
-  background-color: #000000;
+  background-color: transparent;
   width: 100%;
   font-family: 'Inter', sans-serif;
 }
 
 #root {
   width: 100%;
-  background-color: #000000;
+  background-color: transparent;
 }
 
 .container {
@@ -42,15 +42,17 @@ html, body {
 .home-container {
   width: 100%;
   max-width: 100%;
-  background-color: #000000;
+  background-color: transparent;
   color: #ffffff;
 }
 
 /* Header Styles */
 .header {
-  border-bottom: 1px solid #1f1f1f;
+  background: transparent; /* real transparency */
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none; /* remove blur if you want pure clear */
+  z-index: 1000;
 }
-
 .nav {
   width: 100%;
   padding: 1rem 0;
@@ -132,7 +134,7 @@ html, body {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(10, 227, 118, 0.133);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 9999px;
   margin-bottom: 1.5rem;
@@ -153,10 +155,14 @@ html, body {
   line-height: 1.2;
   margin-bottom: 1.5rem;
   font-family: 'Space Grotesk', sans-serif;
+    background: linear-gradient(to right, #ceddd6f5, #c9d4d1c4, #043e0b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .gradient-text {
-  background: linear-gradient(to right, #ffffff, #9ca3af, #d1d5db);
+  background: linear-gradient(to right, #ceddd6f5, #c9d4d1c4, #043e0b);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -230,8 +236,8 @@ html, body {
   margin-bottom: 4rem;
 }
 
-.section-title {
-  font-size: 2.25rem;
+.features-section .section-title {
+  font-size: 3rem;
   font-weight: 700;
   margin-bottom: 1rem;
   font-family: 'Space Grotesk', sans-serif;
@@ -249,11 +255,13 @@ html, body {
 }
 
 .feature-card {
-  background: linear-gradient(to bottom, #111111, #000000);
-  border: 1px solid #1f1f1f;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 1rem;
   padding: 2rem;
   transition: border-color 0.3s;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
 }
 
 .feature-card:hover {
@@ -287,7 +295,6 @@ html, body {
 .how-it-works-section {
   width: 100%;
   padding: 5rem 0;
-  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.03), transparent);
 }
 
 .steps-grid {
@@ -305,7 +312,7 @@ html, body {
 .step-number {
   width: 4rem;
   height: 4rem;
-  background-color: #1f1f1f;
+  background-color: rgba(255,255,255,0.05);
   border: 1px solid #ffffff;
   border-radius: 50%;
   display: flex;
@@ -335,11 +342,13 @@ html, body {
 }
 
 .cta-card {
-  background: linear-gradient(to right, #1a1a1a, #2a2a2a);
-  border: 1px solid #2f2f2f;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 1.5rem;
   padding: 3rem;
   text-align: center;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 
 .cta-title {
@@ -377,7 +386,10 @@ html, body {
 
 /* Footer */
 .footer {
-  border-top: 1px solid #1f1f1f;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  background: rgba(0,0,0,0.3);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   margin-top: 5rem;
 }
 
@@ -431,19 +443,52 @@ html, body {
 }
 
 .footer-bottom {
-  border-top: 1px solid #1f1f1f;
+  border-top: 1px solid rgba(255,255,255,0.08);
   padding: 2rem 0;
   text-align: center;
   font-size: 0.875rem;
   color: #9ca3af;
 }
 
-/* Responsive Design */
+/* Responsive for phone view */
 @media (max-width: 768px) {
-  .nav-links {
-    gap: 1rem;
+
+  /* NAVBAR (2-row layout) */
+  .nav {
+    display: flex;
+    flex-direction: column; /* 👈 stack rows */
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 0;
   }
 
+  /* First row → links */
+  .nav-links {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Second row → centered logo */
+  .logo {
+    position: static; /* 👈 remove absolute */
+    transform: none;
+    margin-top: 0.3rem;
+  }
+
+  /* Text sizing */
+  .nav-link {
+    font-size: 0.85rem;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8rem;
+  }
+
+  /* HERO */
   .hero-title {
     font-size: 2.5rem;
   }
@@ -463,14 +508,17 @@ html, body {
     justify-content: center;
   }
 
+  /* FEATURES */
   .features-grid {
     grid-template-columns: 1fr;
   }
 
+  /* STEPS */
   .steps-grid {
     grid-template-columns: 1fr;
   }
 
+  /* TYPOGRAPHY */
   .section-title {
     font-size: 1.875rem;
   }
