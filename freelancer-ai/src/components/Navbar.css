@@ -237,7 +237,14 @@ html, body {
 }
 
 .features-section .section-title {
-  font-size: 3rem;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.section-header .section-title {
+  font-size: 2rem;
   font-weight: 700;
   margin-bottom: 1rem;
   font-family: 'Space Grotesk', sans-serif;
