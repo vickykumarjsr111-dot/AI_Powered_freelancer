@@ -1,35 +1,47 @@
-import { useState } from 'react';
-import Home from './components/Navbar';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import VideoBackground from './components/VideoBackground';
+import Navbar from './components/Navbar';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-import VideoBackground from './components/VideoBackground';
+import Profile from './components/Profile';
+import BrowseJobs from './components/BrowseJobs';
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState('Home');
-  const [user, setUser] = useState(null);
-
-  const navigateToLogin = () => setCurrentPage('Login');
-  const navigateToHome = () => setCurrentPage('Home');
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    setUser({ name: 'Alex Kumar', role: 'Full-Stack Dev', initials: 'AK' });
-    setCurrentPage('Dashboard');
-  };
-
-  const renderPage = () => {
-    if (currentPage === 'Dashboard' && user) {
-      return <Dashboard user={user} />;
-    }
-    if (currentPage === 'Login') {
-      return <Login onBackToHome={navigateToHome} onLogin={handleLogin} />;
-    }
-    return <Home onNavigateToLogin={navigateToLogin} />;
-  };
+  const navigate = useNavigate();
 
   return (
     <VideoBackground>
-      {renderPage()}
+      <Routes>
+        <Route
+          path="/"
+          element={<Navbar onNavigateToLogin={() => navigate('/login')} />}
+        />
+
+        <Route
+          path="/login"
+          element={<Login onBackToHome={() => navigate('/')} />}
+        />
+
+        <Route
+          path="/freelancer/dashboard"
+          element={<Dashboard />}
+        />
+
+        <Route
+          path="/freelancer/profile"
+          element={<Profile />}
+        />
+
+        <Route
+          path="/freelancer/jobs"
+          element={<BrowseJobs />}
+        />
+
+        <Route
+          path="/client/dashboard"
+          element={<div>Client Dashboard</div>}
+        />
+      </Routes>
     </VideoBackground>
   );
 }
