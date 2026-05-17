@@ -191,18 +191,11 @@ export default function BrowseJobs() {
       {/* Main */}
       <main className="browse-main">
         <div className="browse-header">
-          <div>
-            <h1>Browse Jobs</h1>
-            <p>AI-matched opportunities tailored for your skills</p>
-          </div>
-
-          <button
-            className="profile-btn"
-            onClick={() => navigate('/freelancer/profile')}
-          >
-            Update Profile
-          </button>
+        <div>
+          <h1>Browse Jobs</h1>
+          <p>AI-matched opportunities tailored for your skills</p>
         </div>
+      </div>
 
         {/* Search */}
         <div className="search-section">

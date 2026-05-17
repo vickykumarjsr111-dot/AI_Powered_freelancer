@@ -5,6 +5,10 @@ import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
 import BrowseJobs from './components/BrowseJobs';
+import ClientDashboard from './components/ClientDashboard';
+import ClientMessages from './components/ClientMessages';
+import FreelancerMessages from './components/FreelancerMessages';
+import Chat from './components/Chat';
 
 export default function App() {
   const navigate = useNavigate();
@@ -38,8 +42,23 @@ export default function App() {
         />
 
         <Route
+          path="/freelancer/messages"
+          element={<FreelancerMessages />}
+        />
+
+        <Route
           path="/client/dashboard"
-          element={<div>Client Dashboard</div>}
+          element={<ClientDashboard />}
+        />
+
+        <Route
+          path="/client/messages"
+          element={<ClientMessages />}
+        />
+
+        <Route
+          path="/chat/:chatId"
+          element={<Chat />}
         />
       </Routes>
     </VideoBackground>
