@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { signOut } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
@@ -11,13 +10,16 @@ function getInitials(name = '') {
 }
 
 export default function ClientMessages() {
-  const [chats, setChats]       = useState([]);
-  const [loading, setLoading]   = useState(true);
+  const [chats, setChats] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      if (!user) { navigate('/login'); return; }
+      if (!user) {
+        navigate('/login');
+        return;
+      }
 
       const q = query(
         collection(db, 'chats'),
@@ -32,6 +34,7 @@ export default function ClientMessages() {
 
       return () => unsubSnap();
     });
+
     return () => unsub();
   }, [navigate]);
 
@@ -40,10 +43,25 @@ export default function ClientMessages() {
     navigate('/');
   };
 
+  const handleNavigation = (id) => {
+    if (id === 'dashboard') navigate('/client/dashboard');
+    if (id === 'messages') navigate('/client/messages');
+    if (id === 'contracts') navigate('/client/contracts');
+    if (id === 'settings') navigate('/client/profile');
+  };
+
   if (loading) {
     return (
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'center',
-        minHeight:'100vh', color:'#fff', fontSize:'14px' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          color: '#fff',
+          fontSize: '14px'
+        }}
+      >
         Loading...
       </div>
     );
@@ -54,17 +72,42 @@ export default function ClientMessages() {
       <aside className="cmsg-sidebar">
         <div className="cmsg-brand">
           <div className="cmsg-brand-icon">
-            <img src="/image.png" alt="Logo"
-              style={{ width:20, height:20, objectFit:'contain' }} />
+            <img
+              src="/image.png"
+              alt="Logo"
+              style={{ width: 20, height: 20, objectFit: 'contain' }}
+            />
           </div>
-          <span className="cmsg-brandname">Hustlance<span>AI</span></span>
+          <span className="cmsg-brandname">
+            Hustlance<span>AI</span>
+          </span>
         </div>
+
         <nav className="cmsg-nav">
-          <button className="cmsg-nav-btn"
-            onClick={() => navigate('/client/dashboard')}>Dashboard</button>
-          <button className="cmsg-nav-btn cmsg-nav-btn--active">Messages</button>
-          <button className="cmsg-nav-btn" onClick={handleLogout}
-            style={{ marginTop:'auto', color:'#ef4444' }}>Logout</button>
+          {[
+            { id: 'dashboard', label: 'Dashboard' },
+            { id: 'messages', label: 'Messages' },
+            { id: 'contracts', label: 'Contracts' },
+            { id: 'settings', label: 'Settings' }
+          ].map((item) => (
+            <button
+              key={item.id}
+              className={`cmsg-nav-btn ${
+                item.id === 'messages' ? 'cmsg-nav-btn--active' : ''
+              }`}
+              onClick={() => handleNavigation(item.id)}
+            >
+              {item.label}
+            </button>
+          ))}
+
+          <button
+            className="cmsg-nav-btn"
+            onClick={handleLogout}
+            style={{ marginTop: 'auto', color: '#ef4444' }}
+          >
+            Logout
+          </button>
         </nav>
       </aside>
 
@@ -77,27 +120,41 @@ export default function ClientMessages() {
         {chats.length === 0 ? (
           <div className="cmsg-empty">
             No conversations yet. Go to{' '}
-            <button onClick={() => navigate('/client/dashboard')}
-              style={{ background:'none', border:'none', color:'#22c55e',
-                cursor:'pointer', fontWeight:600 }}>
+            <button
+              onClick={() => navigate('/client/dashboard')}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#22c55e',
+                cursor: 'pointer',
+                fontWeight: 600
+              }}
+            >
               Dashboard
-            </button>
-            {' '}to message a freelancer.
+            </button>{' '}
+            to message a freelancer.
           </div>
         ) : (
           <div className="cmsg-list">
             {chats.map((chat) => (
-              <div key={chat.id} className="cmsg-item"
-                onClick={() => navigate(`/chat/${chat.id}`)}>
+              <div
+                key={chat.id}
+                className="cmsg-item"
+                onClick={() => navigate(`/chat/${chat.id}`)}
+              >
                 <div className="cmsg-av">
                   {getInitials(chat.freelancerName || 'F')}
                 </div>
+
                 <div className="cmsg-info">
-                  <p className="cmsg-name">{chat.freelancerName || 'Freelancer'}</p>
+                  <p className="cmsg-name">
+                    {chat.freelancerName || 'Freelancer'}
+                  </p>
                   <p className="cmsg-last">
                     {chat.lastMessage || 'No messages yet'}
                   </p>
                 </div>
+
                 <div className="cmsg-time">
                   {chat.lastAt?.toDate
                     ? chat.lastAt.toDate().toLocaleDateString()

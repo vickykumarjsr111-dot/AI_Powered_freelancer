@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { auth, db } from '../firebase';
-import { signOut } from 'firebase/auth';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import './BrowseJobs.css';
@@ -16,8 +16,7 @@ const JOBS = [
     skills: ['React', 'Node.js', 'TypeScript'],
     proposals: 4,
     posted: '2h ago',
-    description:
-      'Build and maintain a modern SaaS dashboard with React, reusable UI architecture, and scalable frontend systems.',
+    description: 'Build and maintain a modern SaaS dashboard with React, reusable UI architecture, and scalable frontend systems.',
   },
   {
     id: 2,
@@ -29,8 +28,7 @@ const JOBS = [
     skills: ['React', 'Python', 'AWS'],
     proposals: 7,
     posted: '5h ago',
-    description:
-      'Work on fintech APIs, frontend dashboards, and cloud deployment infrastructure.',
+    description: 'Work on fintech APIs, frontend dashboards, and cloud deployment infrastructure.',
   },
   {
     id: 3,
@@ -42,8 +40,7 @@ const JOBS = [
     skills: ['Next.js', 'Tailwind'],
     proposals: 11,
     posted: '1d ago',
-    description:
-      'Lead UI architecture for a scalable e-commerce platform and optimize frontend performance.',
+    description: 'Lead UI architecture for a scalable e-commerce platform and optimize frontend performance.',
   },
   {
     id: 4,
@@ -55,60 +52,67 @@ const JOBS = [
     skills: ['React Native', 'Redux'],
     proposals: 9,
     posted: '2d ago',
-    description:
-      'Revamp an existing travel mobile app with better UX, navigation, and performance.',
+    description: 'Revamp an existing travel mobile app with better UX, navigation, and performance.',
   },
 ];
 
 function getInitials(name = '') {
-  return name
-    .split(' ')
-    .map((word) => word[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+  return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
 }
 
 export default function BrowseJobs() {
   const navigate = useNavigate();
 
-  const [userData, setUserData] = useState(null);
-  const [savedJobs, setSavedJobs] = useState(new Set());
-  const [searchTerm, setSearchTerm] = useState('');
+  const [userData, setUserData]         = useState(null);
+  const [savedJobs, setSavedJobs]       = useState(new Set());
+  const [searchTerm, setSearchTerm]     = useState('');
   const [selectedSkill, setSelectedSkill] = useState('All');
-  const [selectedJob, setSelectedJob] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [selectedJob, setSelectedJob]   = useState(null);
+  const [loading, setLoading]           = useState(true);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileRef = useRef(null);
 
+  // ── Auth with onAuthStateChanged (fixes refresh redirect) ──
   useEffect(() => {
-    const fetchUser = async () => {
-      const currentUser = auth.currentUser;
-
-      if (!currentUser) {
-        navigate('/login');
-        return;
-      }
-
+    const unsub = onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser) { navigate('/login'); return; }
       try {
         const snap = await getDoc(doc(db, 'users', currentUser.uid));
-
-        if (snap.exists()) {
-          setUserData(snap.data());
-        } else {
-          navigate('/login');
-        }
-      } catch (error) {
-        console.error(error);
+        if (snap.exists()) setUserData(snap.data());
+        else navigate('/login');
+      } catch (err) {
+        console.error(err);
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchUser();
+    });
+    return () => unsub();
   }, [navigate]);
+
+  // ── Close popup on outside click ──
+  useEffect(() => {
+    const handle = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target))
+        setProfileMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, []);
 
   const handleLogout = async () => {
     await signOut(auth);
     navigate('/');
+  };
+
+  const handleNavigation = (id) => {
+    switch (id) {
+      case 'dashboard': navigate('/freelancer/dashboard'); break;
+      case 'jobs':      navigate('/freelancer/jobs');      break;
+      case 'proposals': navigate('/freelancer/proposals'); break;
+      case 'messages':  navigate('/freelancer/messages');  break;
+      case 'settings':  navigate('/freelancer/profile');   break;
+      default: break;
+    }
   };
 
   const toggleSave = (id) => {
@@ -123,79 +127,98 @@ export default function BrowseJobs() {
     const searchMatch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.company.toLowerCase().includes(searchTerm.toLowerCase());
-
     const skillMatch =
       selectedSkill === 'All' || job.skills.includes(selectedSkill);
-
     return searchMatch && skillMatch;
   });
 
-  if (loading) {
-    return <div className="browse-loading">Loading...</div>;
-  }
+  if (loading) return <div className="browse-loading">Loading...</div>;
 
-  const name = userData?.name || 'User';
+  const name     = userData?.name || 'User';
+  const role     = userData?.role || 'freelancer';
   const initials = getInitials(name);
 
   return (
     <div className="browse-shell">
+
       {/* Sidebar */}
       <aside className="browse-sidebar">
         <div className="browse-brand">
           <div className="brand-icon">
             <img src="/image.png" alt="Logo" />
           </div>
-          <span className="brand-name">
-            Hustlance<span>AI</span>
-          </span>
+          <span className="brand-name">Hustlance<span>AI</span></span>
         </div>
 
         <nav className="browse-nav">
-          <button className="nav-btn" onClick={() => navigate('/freelancer/dashboard')}>
-            Dashboard
-          </button>
+          {[
+            { id: 'dashboard', label: 'Dashboard'  },
+            { id: 'jobs',      label: 'Browse Jobs' },
+            { id: 'proposals', label: 'Proposals'   },
+            { id: 'messages',  label: 'Messages'    },
+            { id: 'earnings',  label: 'Earnings'    },
+            { id: 'settings',  label: 'Settings'    },
+          ].map((item) => (
+            <button
+              key={item.id}
+              className={`nav-btn ${item.id === 'jobs' ? 'nav-btn--active' : ''}`}
+              onClick={() => handleNavigation(item.id)}
+            >
+              {item.label}
+            </button>
+          ))}
 
-          <button className="nav-btn nav-btn--active">
-            Browse Jobs
-          </button>
-
-          <button className="nav-btn">
-            Proposals
-          </button>
-
-          <button className="nav-btn">
-            Messages
-          </button>
-
-          <button className="nav-btn">
-            Earnings
-          </button>
-
-          <button
-            className="nav-btn logout-btn"
-            onClick={handleLogout}
-          >
+          <button className="nav-btn logout-btn" onClick={handleLogout}>
             Logout
           </button>
         </nav>
 
-        <div className="browse-profile">
+        {/* Profile row with popup */}
+        <div className="browse-profile" ref={profileRef}
+          onClick={() => setProfileMenuOpen((p) => !p)}>
           <div className="profile-avatar">{initials}</div>
           <div>
             <p className="profile-name">{name}</p>
-            <p className="profile-role">Freelancer</p>
+            <p className="profile-role" style={{ textTransform: 'capitalize' }}>{role}</p>
           </div>
+          <span className="online-dot" />
+
+          {profileMenuOpen && (
+            <div className="browse-profile-popup" onClick={(e) => e.stopPropagation()}>
+              <div className="bpopup-header">
+                <div className="bpopup-av">{initials}</div>
+                <div>
+                  <p className="bpopup-name">{name}</p>
+                  <p className="bpopup-role" style={{ textTransform:'capitalize' }}>{role}</p>
+                </div>
+              </div>
+              <div className="bpopup-divider" />
+              <button className="bpopup-item"
+                onClick={() => { setProfileMenuOpen(false); navigate('/freelancer/profile'); }}>
+                ✏️ &nbsp;Update Profile
+              </button>
+              <button className="bpopup-item"
+                onClick={() => { setProfileMenuOpen(false); navigate('/freelancer/profile'); }}>
+                ⚙️ &nbsp;Settings
+              </button>
+              <div className="bpopup-divider" />
+              <button className="bpopup-item bpopup-item--danger"
+                onClick={() => { setProfileMenuOpen(false); handleLogout(); }}>
+                🚪 &nbsp;Logout
+              </button>
+            </div>
+          )}
         </div>
       </aside>
 
       {/* Main */}
       <main className="browse-main">
         <div className="browse-header">
-        <div>
-          <h1>Browse Jobs</h1>
-          <p>AI-matched opportunities tailored for your skills</p>
+          <div>
+            <h1>Browse Jobs</h1>
+            <p>AI-matched opportunities tailored for your skills</p>
+          </div>
         </div>
-      </div>
 
         {/* Search */}
         <div className="search-section">
@@ -205,7 +228,6 @@ export default function BrowseJobs() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-
           <div className="skill-filters">
             {['All', 'React', 'Node.js', 'Python', 'AWS'].map((skill) => (
               <button
@@ -229,10 +251,7 @@ export default function BrowseJobs() {
                     <h3>{job.title}</h3>
                     <p>{job.company}</p>
                   </div>
-
-                  <div className="job-match">
-                    {job.match}% Match
-                  </div>
+                  <div className="job-match">{job.match}% Match</div>
                 </div>
 
                 <div className="job-meta">
@@ -252,12 +271,9 @@ export default function BrowseJobs() {
                   <button onClick={() => toggleSave(job.id)}>
                     {savedJobs.has(job.id) ? '♥ Saved' : '♡ Save'}
                   </button>
-
-                  <button onClick={() => setSelectedJob(job)}>
-                    Details
-                  </button>
-
-                  <button className="apply-btn">
+                  <button onClick={() => setSelectedJob(job)}>Details</button>
+                  <button className="apply-btn"
+                    onClick={() => navigate('/freelancer/proposals')}>
                     Apply Now
                   </button>
                 </div>
@@ -269,12 +285,8 @@ export default function BrowseJobs() {
           <aside className="browse-right">
             <div className="insight-card">
               <span>AI Insight</span>
-              <p>
-                Jobs requiring <strong>React + TypeScript</strong> have
-                38% less competition this week.
-              </p>
+              <p>Jobs requiring <strong>React + TypeScript</strong> have 38% less competition this week.</p>
             </div>
-
             <div className="insight-card">
               <h3>Recommended Skills</h3>
               <div className="recommended-skills">
@@ -289,31 +301,27 @@ export default function BrowseJobs() {
 
       {/* Modal */}
       {selectedJob && (
-        <div
-          className="job-modal-overlay"
-          onClick={() => setSelectedJob(null)}
-        >
-          <div
-            className="job-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="job-modal-overlay" onClick={() => setSelectedJob(null)}>
+          <div className="job-modal" onClick={(e) => e.stopPropagation()}>
             <h2>{selectedJob.title}</h2>
             <p className="modal-company">{selectedJob.company}</p>
-
             <p>{selectedJob.description}</p>
-
             <div className="modal-tags">
               {selectedJob.skills.map((skill) => (
                 <span key={skill}>{skill}</span>
               ))}
             </div>
-
-            <button
-              className="close-modal"
-              onClick={() => setSelectedJob(null)}
-            >
-              Close
-            </button>
+            <div style={{ display:'flex', gap:'8px', marginTop:'16px' }}>
+              <button className="close-modal" style={{ flex:1 }}
+                onClick={() => setSelectedJob(null)}>
+                Close
+              </button>
+              <button className="close-modal"
+                style={{ flex:1, background:'#fff', color:'#000' }}
+                onClick={() => { setSelectedJob(null); navigate('/freelancer/proposals'); }}>
+                Apply Now
+              </button>
+            </div>
           </div>
         </div>
       )}

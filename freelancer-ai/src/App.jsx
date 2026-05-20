@@ -9,6 +9,8 @@ import ClientDashboard from './components/ClientDashboard';
 import ClientMessages from './components/ClientMessages';
 import FreelancerMessages from './components/FreelancerMessages';
 import Chat from './components/Chat';
+import FreelancerProposals from './components/FreelancerProposals';
+import ClientContracts from './components/Clientcontracts';
 
 export default function App() {
   const navigate = useNavigate();
@@ -47,6 +49,11 @@ export default function App() {
         />
 
         <Route
+          path="/freelancer/proposals"
+          element={<FreelancerProposals />}
+        />
+
+        <Route
           path="/client/dashboard"
           element={<ClientDashboard />}
         />
@@ -54,6 +61,11 @@ export default function App() {
         <Route
           path="/client/messages"
           element={<ClientMessages />}
+        />
+
+        <Route
+          path="/client/contracts"
+          element={<ClientContracts />}
         />
 
         <Route

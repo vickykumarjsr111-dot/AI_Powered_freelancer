@@ -58,10 +58,13 @@ export default function ClientDashboard() {
   };
 
   const handleNavigation = (id) => {
-    setActiveNav(id);
-    if (id === 'messages') navigate('/client/messages');
-    if (id === 'dashboard') navigate('/client/dashboard');
-  };
+  setActiveNav(id);
+
+  if (id === 'dashboard') navigate('/client/dashboard');
+  if (id === 'messages') navigate('/client/messages');
+  if (id === 'contracts') navigate('/client/contracts');
+  if (id === 'settings') navigate('/client/settings');
+};
 
   const handleMessage = async (freelancer) => {
     const currentUser = auth.currentUser;

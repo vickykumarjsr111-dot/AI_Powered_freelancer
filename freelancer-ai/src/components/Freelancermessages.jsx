@@ -39,6 +39,17 @@ export default function FreelancerMessages() {
     navigate('/');
   };
 
+  const handleNavigation = (id) => {
+    switch (id) {
+      case 'dashboard': navigate('/freelancer/dashboard'); break;
+      case 'jobs':      navigate('/freelancer/jobs');      break;
+      case 'proposals': navigate('/freelancer/proposals'); break;
+      case 'messages':  navigate('/freelancer/messages');  break;
+      case 'settings':  navigate('/freelancer/profile');   break;
+      default: break;
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ display:'flex', alignItems:'center', justifyContent:'center',
@@ -58,14 +69,28 @@ export default function FreelancerMessages() {
           </div>
           <span className="fmsg-brandname">Hustlance<span>AI</span></span>
         </div>
+
         <nav className="fmsg-nav">
-          <button className="fmsg-nav-btn"
-            onClick={() => navigate('/freelancer/dashboard')}>Dashboard</button>
-          <button className="fmsg-nav-btn"
-            onClick={() => navigate('/freelancer/jobs')}>Browse Jobs</button>
-          <button className="fmsg-nav-btn fmsg-nav-btn--active">Messages</button>
-          <button className="fmsg-nav-btn" onClick={handleLogout}
-            style={{ marginTop:'auto', color:'#ef4444' }}>Logout</button>
+          {[
+            { id:'dashboard', label:'Dashboard'  },
+            { id:'jobs',      label:'Browse Jobs' },
+            { id:'proposals', label:'Proposals'  },
+            { id:'messages',  label:'Messages'   },
+            { id:'earnings',  label:'Earnings'   },
+            { id:'settings',  label:'Settings'   },
+          ].map((item) => (
+            <button key={item.id}
+              className={`fmsg-nav-btn ${item.id === 'messages' ? 'fmsg-nav-btn--active' : ''}`}
+              onClick={() => handleNavigation(item.id)}>
+              {item.label}
+            </button>
+          ))}
+
+          <div style={{ flex: 1 }} />
+            <button className="fmsg-nav-btn" onClick={handleLogout}
+              style={{ color:'#ef4444' }}>
+              Logout
+            </button>
         </nav>
       </aside>
 
@@ -89,9 +114,7 @@ export default function FreelancerMessages() {
                 </div>
                 <div className="fmsg-info">
                   <p className="fmsg-name">{chat.clientName || 'Client'}</p>
-                  <p className="fmsg-last">
-                    {chat.lastMessage || 'No messages yet'}
-                  </p>
+                  <p className="fmsg-last">{chat.lastMessage || 'No messages yet'}</p>
                 </div>
                 <div className="fmsg-time">
                   {chat.lastAt?.toDate

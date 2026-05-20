@@ -129,8 +129,9 @@ export default function Dashboard() {
   switch (itemId) {
     case 'dashboard': navigate('/freelancer/dashboard');  break;
     case 'jobs':      navigate('/freelancer/jobs');       break;
-    case 'messages':  navigate('/freelancer/messages');   break;
+    case 'proposals': navigate('/freelancer/proposals');  break;
     case 'settings':  navigate('/freelancer/profile');    break;
+    case 'messages':  navigate('/freelancer/messages');   break;
     default: break;
    }
   };
@@ -173,8 +174,8 @@ export default function Dashboard() {
           {[
             { id: 'dashboard',  label: 'Dashboard' },
             { id: 'jobs',       label: 'Browse Jobs' },
-            { id: 'proposals',  label: 'Proposals', badge: 2 },
-            { id: 'messages',   label: 'Messages',  badge: 4 },
+            { id: 'proposals',  label: 'Proposals' },
+            { id: 'messages',   label: 'Messages' },
             { id: 'earnings',   label: 'Earnings' },
             { id: 'settings',   label: 'Settings' },
           ].map((item) => (

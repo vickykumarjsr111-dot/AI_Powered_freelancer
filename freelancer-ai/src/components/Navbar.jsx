@@ -3,7 +3,6 @@ import './Navbar.css';
 export default function Home({ onNavigateToLogin }) {
   return (
     <div className="home-container">
-      {/* Header */}
       <header className="header">
         <nav className="nav container">
           <div className="logo">
@@ -19,7 +18,6 @@ export default function Home({ onNavigateToLogin }) {
         </nav>
       </header>
 
-      {/* Hero Section */}
       <section className="hero-section">
         <div className="hero-content container">
           <div className="hero-badge">
@@ -46,7 +44,6 @@ export default function Home({ onNavigateToLogin }) {
         </div>
       </section>
 
-      {/* Features */}
       <section id="features" className="features-section">
         <div className="container">
           <div className="section-header">
@@ -77,7 +74,6 @@ export default function Home({ onNavigateToLogin }) {
         </div>
       </section>
 
-      {/* How it works */}
       <section id="how-it-works" className="how-it-works-section">
         <div className="container">
           <div className="section-header">
@@ -99,7 +95,6 @@ export default function Home({ onNavigateToLogin }) {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="cta-section">
         <div className="container">
           <div className="cta-card">
@@ -112,7 +107,6 @@ export default function Home({ onNavigateToLogin }) {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="footer">
         <div className="footer-content container">
           <div className="footer-column">

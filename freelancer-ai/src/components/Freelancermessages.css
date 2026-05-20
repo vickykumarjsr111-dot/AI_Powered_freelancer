@@ -28,8 +28,12 @@
 .fmsg-brandname span { color:#9ca3af; }
 
 .fmsg-nav {
-  flex:1; padding:12px 8px;
-  display:flex; flex-direction:column; gap:2px;
+  flex: 1;
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
 }
 .fmsg-nav-btn {
   width:100%; padding:8px 12px;
