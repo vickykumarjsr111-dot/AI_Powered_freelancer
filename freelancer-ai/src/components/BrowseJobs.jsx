@@ -72,7 +72,7 @@ export default function BrowseJobs() {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileRef = useRef(null);
 
-  // ── Auth with onAuthStateChanged (fixes refresh redirect) ──
+  
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) { navigate('/login'); return; }
@@ -89,7 +89,7 @@ export default function BrowseJobs() {
     return () => unsub();
   }, [navigate]);
 
-  // ── Close popup on outside click ──
+  
   useEffect(() => {
     const handle = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target))

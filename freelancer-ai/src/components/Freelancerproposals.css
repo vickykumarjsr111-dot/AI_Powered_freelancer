@@ -6,7 +6,7 @@
   font-family: 'Inter', sans-serif;
 }
 
-/* Sidebar */
+
 .fp-sidebar {
   position: fixed; top:0; left:0;
   height: 100vh; width: 220px;
@@ -69,7 +69,7 @@
   background:#22c55e; flex-shrink:0;
 }
 
-/* Main */
+
 .fp-main {
   margin-left:220px; flex:1;
   padding:28px 28px 48px; min-height:100vh;
@@ -81,7 +81,7 @@
 }
 .fp-sub { font-size:13px; color:#9ca3af; margin-top:4px; }
 
-/* Stats */
+
 .fp-stats {
   display:grid; grid-template-columns:repeat(4,1fr);
   gap:10px; margin-bottom:22px;
@@ -99,7 +99,7 @@
   font-size:24px; font-weight:700; color:#fff;
 }
 
-/* Two-column grid */
+
 .fp-grid {
   display:grid; grid-template-columns:1fr 1fr; gap:14px;
 }
@@ -109,7 +109,7 @@
   margin-bottom:10px;
 }
 
-/* Job cards */
+
 .fp-job-list { display:flex; flex-direction:column; gap:10px; }
 .fp-job-card {
   background:#0a0a0a; border:1px solid #1f1f1f;
@@ -147,7 +147,7 @@
   border:1px solid #2a2a2a; cursor:default !important;
 }
 
-/* Proposal cards */
+
 .fp-proposal-list { display:flex; flex-direction:column; gap:10px; }
 .fp-proposal-card {
   background:#0a0a0a; border:1px solid #1f1f1f;
@@ -171,7 +171,7 @@
 }
 .fp-proposal-meta strong { color:#d1d5db; }
 
-/* Status badges */
+
 .status-badge {
   font-size:10px; font-weight:600;
   padding:2px 8px; border-radius:20px;
@@ -188,7 +188,7 @@
   border-radius:10px;
 }
 
-/* Modal */
+
 .fp-modal-overlay {
   position:fixed; inset:0;
   background:rgba(0,0,0,0.75);

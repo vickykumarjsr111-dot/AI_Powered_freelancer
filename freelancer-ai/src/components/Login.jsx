@@ -12,23 +12,23 @@ import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
 export default function Login({ onBackToHome }) {
-  const [tab, setTab]           = useState('login'); // 'login' | 'register'
+  const [tab, setTab]           = useState('login'); 
   const [error, setError]       = useState('');
   const [success, setSuccess]   = useState('');
   const [loading, setLoading]   = useState(false);
   const navigate = useNavigate();
 
-  // Login state
+  
   const [loginData, setLoginData] = useState({ email: '', password: '' });
 
-  // Register state
+  
   const [regData, setRegData] = useState({
     name: '', email: '', password: '', confirmPassword: '', role: ''
   });
 
   const clearMessages = () => { setError(''); setSuccess(''); };
 
-  // ── Redirect after login ─────────────────────────────────
+  
   const handleRedirect = async (user) => {
     const snap = await getDoc(doc(db, 'users', user.uid));
     if (snap.exists()) {
@@ -42,7 +42,7 @@ export default function Login({ onBackToHome }) {
     }
   };
 
-  // ── Email Login ──────────────────────────────────────────
+  
   const handleLogin = async (e) => {
     e.preventDefault();
     clearMessages(); setLoading(true);
@@ -59,7 +59,7 @@ export default function Login({ onBackToHome }) {
     }
   };
 
-  // ── Register ─────────────────────────────────────────────
+  
   const handleRegister = async (e) => {
     e.preventDefault();
     clearMessages();
@@ -103,7 +103,7 @@ export default function Login({ onBackToHome }) {
     }
   };
 
-  // ── Google ───────────────────────────────────────────────
+  
   const handleGoogle = async () => {
     clearMessages(); setLoading(true);
     try {
@@ -112,7 +112,7 @@ export default function Login({ onBackToHome }) {
       if (snap.exists()) {
         await handleRedirect(user);
       } else {
-        // New Google user — create profile as freelancer by default
+        
         await setDoc(doc(db, 'users', user.uid), {
           uid:       user.uid,
           name:      user.displayName || 'User',
@@ -130,7 +130,7 @@ export default function Login({ onBackToHome }) {
     }
   };
 
-  // ── Forgot Password ──────────────────────────────────────
+  
   const handleForgotPassword = async () => {
     if (!loginData.email) {
       setError('Enter your email above first, then click Forgot Password.');
@@ -145,7 +145,7 @@ export default function Login({ onBackToHome }) {
     }
   };
 
-  // ── Error messages ───────────────────────────────────────
+  
   const getErrorMessage = (code) => {
     switch (code) {
       case 'auth/user-not-found':         return 'No account found. Please register.';

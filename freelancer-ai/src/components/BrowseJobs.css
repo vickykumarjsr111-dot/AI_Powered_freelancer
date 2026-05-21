@@ -19,7 +19,7 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
-/* ── Sidebar ── */
+
 .browse-sidebar {
   position: fixed;
   top: 0; left: 0;
@@ -57,7 +57,7 @@ body {
 }
 .brand-name span { color: #9ca3af; }
 
-/* Nav */
+
 .browse-nav {
   flex: 1;
   padding: 12px 8px;
@@ -86,7 +86,7 @@ body {
 .nav-btn--active  { background: #1a1a1a; color: #fff; }
 .logout-btn       { margin-top: auto; color: #ef4444; }
 
-/* Profile row */
+
 .browse-profile {
   display: flex;
   align-items: center;
@@ -133,7 +133,7 @@ body {
   margin-left: auto;
 }
 
-/* Profile popup */
+
 .browse-profile-popup {
   position: absolute;
   bottom: calc(100% + 8px);
@@ -180,7 +180,7 @@ body {
 .bpopup-item--danger { color: #f87171; }
 .bpopup-item--danger:hover { background: rgba(239,68,68,0.08); color: #ef4444; }
 
-/* ── Main ── */
+
 .browse-main {
   margin-left: 220px;
   flex: 1;
@@ -198,7 +198,7 @@ body {
 }
 .browse-header p { font-size: 13px; color: #9ca3af; }
 
-/* Search */
+
 .search-section { margin-bottom: 22px; }
 .search-section input {
   width: 100%; padding: 10px 14px;
@@ -224,7 +224,7 @@ body {
 .skill-filters button:hover { border-color: #2f2f2f; color: #fff; }
 .skill-active { background: #fff !important; color: #000 !important; border-color: #fff !important; }
 
-/* Content grid */
+
 .browse-content {
   display: grid;
   grid-template-columns: 1fr 230px;
@@ -279,7 +279,7 @@ body {
 .apply-btn { background: #fff !important; color: #000 !important; border-color: #fff !important; }
 .apply-btn:hover { background: #e5e5e5 !important; }
 
-/* Right panel */
+
 .browse-right {
   display: flex; flex-direction: column; gap: 10px;
   position: sticky; top: 28px;
@@ -310,7 +310,7 @@ body {
   border-radius: 20px; color: #9ca3af;
 }
 
-/* Modal */
+
 .job-modal-overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.7);
@@ -352,7 +352,7 @@ body {
   color: #fff; font-size: 14px;
 }
 
-/* Responsive */
+
 @media (max-width: 900px) {
   .browse-content { grid-template-columns: 1fr; }
   .browse-right   { position: static; }

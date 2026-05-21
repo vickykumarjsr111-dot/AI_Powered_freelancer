@@ -25,7 +25,7 @@ export default function Chat() {
   const [loading, setLoading]         = useState(true);
   const bottomRef = useRef(null);
 
-  // Auth + load chat meta
+  
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) { navigate('/login'); return; }
@@ -47,7 +47,7 @@ export default function Chat() {
     return () => unsub();
   }, [chatId, navigate]);
 
-  // Real-time messages
+  
   useEffect(() => {
     if (!chatId) return;
     const q = query(
@@ -60,7 +60,7 @@ export default function Chat() {
     return () => unsub();
   }, [chatId]);
 
-  // Auto-scroll to bottom
+  
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -68,7 +68,7 @@ export default function Chat() {
   const sendMessage = async () => {
     if (!text.trim() || !currentUser) return;
 
-    // Only client can initiate; both can reply once chat exists
+    
     const isClient     = currentUser.uid === chatData?.clientId;
     const isFreelancer = currentUser.uid === chatData?.freelancerId;
     if (!isClient && !isFreelancer) return;

@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
 
-/* Shell */
 .dash-shell {
   display: flex;
   min-height: 100vh;
@@ -9,7 +8,6 @@
   font-family: 'Inter', sans-serif;
 }
 
-/* ── Sidebar ── */
 .dash-sidebar {
   position: fixed;
   top: 0;
@@ -102,6 +100,7 @@
 }
 
 .dash-profile {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -156,7 +155,6 @@
   flex-shrink: 0;
 }
 
-/* ── Main ── */
 .dash-main {
   margin-left: 220px;
   flex: 1;
@@ -164,7 +162,6 @@
   min-height: 100vh;
 }
 
-/* Header */
 .dash-header {
   display: flex;
   align-items: flex-start;
@@ -227,9 +224,8 @@
   background: #e5e5e5;
 }
 
-/* Stats */
-.stats-row {
-  display: grid;
+.dash-shell .stats-row {
+  display: grid !important;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   margin-bottom: 22px;
@@ -269,7 +265,6 @@
   color: #22c55e;
 }
 
-/* Content grid */
 .content-grid {
   display: grid;
   grid-template-columns: 1fr 230px;
@@ -280,15 +275,26 @@
 .section-hdr {
   display: flex;
   align-items: center;
+  flex-wrap: nowrap;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
-.section-title {
+.dash-shell .section-title {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
+  font-size: 16px !important;
   font-weight: 600;
   color: #fff;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.dash-shell .panel-card .section-title {
+  font-size: 13px !important;
 }
 
 .live-chip {
@@ -298,9 +304,10 @@
   color: #22c55e;
   border-radius: 20px;
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-/* Job cards */
 .job-list {
   display: flex;
   flex-direction: column;
@@ -326,7 +333,6 @@
   margin-bottom: 8px;
 }
 
-/* Match ring */
 .match-ring {
   position: relative;
   width: 36px;
@@ -360,6 +366,7 @@
 
 .job-info {
   flex: 1;
+  min-width: 0;
 }
 
 .job-title {
@@ -379,10 +386,17 @@
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
   color: #6b7280;
-  padding: 0;
+  padding: 2px 4px;
+  width: auto;
+  height: auto;
   line-height: 1;
+  flex-shrink: 0;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: color 0.15s, transform 0.1s;
 }
 
@@ -457,7 +471,7 @@
 }
 
 .btn-apply:hover {
-  background: #16101000;
+  background: #e5e5e5;
 }
 
 .btn-details {
@@ -471,7 +485,6 @@
   border-color: #3a3a3a;
 }
 
-/* Right panel */
 .right-col {
   display: flex;
   flex-direction: column;
@@ -529,7 +542,6 @@
   margin-top: 2px;
 }
 
-/* Profile strength */
 .strength-row {
   display: flex;
   align-items: center;
@@ -587,7 +599,6 @@
   color: #fff;
 }
 
-/* AI Insight card */
 .panel-card--ai {
   border-color: rgba(167, 139, 250, 0.15);
 }
@@ -613,24 +624,6 @@
 
 .ai-text strong {
   color: #d1d5db;
-}
-
-/* Responsive */
-@media (max-width: 900px) {
-  .content-grid {
-    grid-template-columns: 1fr;
-  }
-  .stats-row {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .right-col {
-    position: static;
-  }
-}
-
-/* ── Profile popup ── */
-.dash-profile {
-  position: relative; /* needed for popup positioning */
 }
 
 .profile-popup {
@@ -726,6 +719,19 @@
   color: #ef4444;
 }
 
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+  .dash-shell .stats-row {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .right-col {
+    position: static;
+  }
+}
+
 @media (max-width: 640px) {
   .dash-sidebar {
     display: none;
@@ -734,8 +740,8 @@
     margin-left: 0;
     padding: 16px;
   }
-  .stats-row {
-    grid-template-columns: 1fr 1fr;
+  .dash-shell .stats-row {
+    grid-template-columns: 1fr 1fr !important;
   }
   .dash-header {
     flex-direction: column;

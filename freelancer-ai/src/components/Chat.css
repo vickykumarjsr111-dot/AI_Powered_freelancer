@@ -11,7 +11,7 @@
   margin: 0 auto;
 }
 
-/* Header */
+
 .chat-header {
   display: flex;
   align-items: center;
@@ -56,7 +56,7 @@
 }
 .chat-peer-role { font-size: 11px; color: #6b7280; }
 
-/* Messages area */
+
 .chat-messages {
   flex: 1;
   overflow-y: auto;
@@ -78,7 +78,7 @@
   padding: 40px 20px;
 }
 
-/* Bubble rows */
+
 .chat-bubble-wrap {
   display: flex;
   align-items: flex-end;
@@ -130,7 +130,7 @@
   text-align: right;
 }
 
-/* Input row */
+
 .chat-input-row {
   display: flex;
   align-items: flex-end;
@@ -177,7 +177,7 @@
 .chat-send-btn:hover:not(:disabled) { background: #e5e5e5; }
 .chat-send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-/* Mobile */
+
 @media (max-width: 640px) {
   .chat-shell { max-width: 100%; }
   .chat-bubble { max-width: 80%; }

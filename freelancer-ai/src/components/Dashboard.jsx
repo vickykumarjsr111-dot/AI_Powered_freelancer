@@ -100,7 +100,7 @@ export default function Dashboard() {
     return () => unsubscribe();
   }, [navigate]);
 
-  // Close popup when clicking outside
+  
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {

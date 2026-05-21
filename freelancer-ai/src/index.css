@@ -31,7 +31,7 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ✅ Proper media query (not nested) */
+/* Responsive root font */
 @media (max-width: 1024px) {
   :root {
     font-size: 16px;
@@ -63,43 +63,22 @@
 /* Base reset */
 body {
   margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
-/* ✅ FIXED ROOT (critical) */
+/* FIXED ROOT ONLY */
 #root {
   width: 100%;
-  max-width: 1200px; /* optional container feel */
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
 /* Typography */
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-}
-
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-}
-
-/* ✅ Responsive typography */
+/* Responsive typography */
 @media (max-width: 1024px) {
   h1 {
     font-size: 36px;

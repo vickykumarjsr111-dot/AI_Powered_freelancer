@@ -254,7 +254,7 @@
   color: #d1d5db;
 }
 
-/* ── Tab switcher ───────────────────────────────── */
+
 .auth-tabs {
   display: flex;
   background: rgba(255, 255, 255, 0.05);
@@ -289,7 +289,7 @@
   font-weight: 600;
 }
 
-/* ── Messages ───────────────────────────────────── */
+
 .auth-message {
   padding: 10px 14px;
   border-radius: 8px;
@@ -310,7 +310,7 @@
   color: #86efac;
 }
 
-/* ── Role selector ──────────────────────────────── */
+
 .role-selector {
   display: flex;
   gap: 8px;

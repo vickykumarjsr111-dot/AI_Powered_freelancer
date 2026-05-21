@@ -8,7 +8,7 @@
   font-family: 'Inter', sans-serif;
 }
 
-/* Sidebar */
+
 .cc-sidebar {
   position: fixed;
   top: 0;
@@ -142,7 +142,7 @@
   background: #22c55e;
 }
 
-/* Main */
+
 .cc-main {
   margin-left: 220px;
   flex: 1;
@@ -164,7 +164,7 @@
   color: #9ca3af;
 }
 
-/* Stats */
+
 .cc-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -191,7 +191,7 @@
   margin-top: 8px;
 }
 
-/* Filters */
+
 .cc-filters {
   display: flex;
   gap: 8px;
@@ -223,7 +223,7 @@
   font-size: 11px;
 }
 
-/* Cards */
+
 .cc-list {
   display: flex;
   flex-direction: column;
@@ -292,7 +292,7 @@
   justify-content: flex-end;
 }
 
-/* Buttons */
+
 .cc-actions {
   display: flex;
   gap: 10px;
@@ -326,7 +326,7 @@
   cursor: pointer;
 }
 
-/* Status */
+
 .cc-status-badge {
   padding: 5px 12px;
   border-radius: 20px;
@@ -358,7 +358,7 @@
   color: #6b7280;
 }
 
-/* Mobile */
+
 @media (max-width: 900px) {
   .cc-stats {
     grid-template-columns: repeat(2, 1fr);
