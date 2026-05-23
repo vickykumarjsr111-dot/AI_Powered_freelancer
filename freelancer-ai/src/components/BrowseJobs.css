@@ -38,6 +38,7 @@ body {
   gap: 10px;
   padding: 20px 16px;
   border-bottom: 1px solid #1f1f1f;
+  flex-shrink: 0;
 }
 
 .brand-icon img {
@@ -57,9 +58,10 @@ body {
 }
 .brand-name span { color: #9ca3af; }
 
-
 .browse-nav {
   flex: 1;
+  min-height: 0;   
+  overflow-y: auto;
   padding: 12px 8px;
   display: flex;
   flex-direction: column;
@@ -82,12 +84,12 @@ body {
   text-align: left;
   transition: background 0.15s, color 0.15s;
 }
-.nav-btn:hover    { background: #0f0f0f; color: #fff; }
-.nav-btn--active  { background: #1a1a1a; color: #fff; }
-.logout-btn       { margin-top: auto; color: #ef4444; }
-
+.nav-btn:hover   { background: #0f0f0f; color: #fff; }
+.nav-btn--active { background: #1a1a1a; color: #fff; }
+.logout-btn      { margin-top: auto; color: #ef4444; }
 
 .browse-profile {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -95,9 +97,12 @@ body {
   border-top: 1px solid #1f1f1f;
   cursor: pointer;
   transition: background 0.15s;
-  position: relative;
+  flex-shrink: 0;
 }
-.browse-profile:hover { background: #0a0a0a; }
+
+.browse-profile:hover {
+  background: #0a0a0a;
+}
 
 .profile-avatar {
   width: 32px;
@@ -114,7 +119,13 @@ body {
   color: #fff;
 }
 
+.profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
 .profile-name {
+  font-family: 'Inter', sans-serif;
   font-size: 12px;
   font-weight: 500;
   color: #fff;
@@ -122,7 +133,11 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.profile-role { font-size: 11px; color: #6b7280; }
+
+.profile-role {
+  font-size: 11px;
+  color: #6b7280;
+}
 
 .online-dot {
   width: 7px;
@@ -137,48 +152,95 @@ body {
 .browse-profile-popup {
   position: absolute;
   bottom: calc(100% + 8px);
-  left: 8px; right: 8px;
+  left: 8px;
+  right: 8px;
   background: #111;
   border: 1px solid #2a2a2a;
   border-radius: 10px;
   padding: 6px;
-  box-shadow: 0 -8px 32px rgba(0,0,0,0.6);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6);
   z-index: 200;
-  animation: bpopupIn 0.15s ease;
+  animation: popupIn 0.15s ease;
 }
-@keyframes bpopupIn {
+
+@keyframes popupIn {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0);   }
 }
+
 .bpopup-header {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 6px 8px 8px;
 }
+
 .bpopup-av {
-  width: 34px; height: 34px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: #1f1f1f; border: 1px solid #2f2f2f;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
+  background: #1f1f1f;
+  border: 1px solid #2f2f2f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
 }
-.bpopup-name { font-size: 12px; font-weight: 600; color: #fff; margin: 0; }
-.bpopup-role { font-size: 11px; color: #6b7280; margin: 0; }
-.bpopup-divider { height: 1px; background: #1f1f1f; margin: 4px 0; }
+
+.bpopup-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bpopup-role {
+  font-size: 11px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.bpopup-divider {
+  height: 1px;
+  background: #1f1f1f;
+  margin: 4px 0;
+}
+
 .bpopup-item {
-  display: flex; align-items: center; gap: 6px;
-  width: 100%; padding: 7px 10px;
-  border-radius: 6px; border: none;
-  background: transparent; color: #d1d5db;
-  font-size: 12px; font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #d1d5db;
+  font-size: 12px;
+  font-weight: 500;
   font-family: 'Inter', sans-serif;
-  cursor: pointer; text-align: left;
+  cursor: pointer;
+  text-align: left;
   transition: background 0.15s, color 0.15s;
 }
-.bpopup-item:hover { background: #1a1a1a; color: #fff; }
+
+.bpopup-item:hover {
+  background: #1a1a1a;
+  color: #fff;
+}
+
 .bpopup-item--danger { color: #f87171; }
-.bpopup-item--danger:hover { background: rgba(239,68,68,0.08); color: #ef4444; }
+
+.bpopup-item--danger:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+}
 
 
 .browse-main {
@@ -188,9 +250,7 @@ body {
   min-height: 100vh;
 }
 
-.browse-header {
-  margin-bottom: 22px;
-}
+.browse-header { margin-bottom: 22px; }
 .browse-header h1 {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 22px; font-weight: 700; color: #fff;
@@ -207,7 +267,7 @@ body {
   font-size: 13px; font-family: 'Inter', sans-serif;
   outline: none; transition: border-color 0.15s;
 }
-.search-section input:focus   { border-color: #2f2f2f; }
+.search-section input:focus       { border-color: #2f2f2f; }
 .search-section input::placeholder { color: #6b7280; }
 
 .skill-filters {
@@ -233,6 +293,7 @@ body {
 }
 
 .jobs-list { display: flex; flex-direction: column; gap: 10px; }
+
 
 .job-card {
   background: #0a0a0a; border: 1px solid #1f1f1f;
@@ -352,12 +413,91 @@ body {
   color: #fff; font-size: 14px;
 }
 
+.mobile-menu-btn {
+  display: none;
+}
+
+
+.browse-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1999;
+}
+
+.browse-overlay--active {
+  display: block;
+}
+
 
 @media (max-width: 900px) {
   .browse-content { grid-template-columns: 1fr; }
   .browse-right   { position: static; }
 }
+
 @media (max-width: 640px) {
-  .browse-sidebar { display: none; }
-  .browse-main    { margin-left: 0; padding: 16px; }
+  .browse-sidebar {
+    position: fixed;
+    left: -260px;
+    top: 0;
+    width: 240px;
+    height: 100vh;
+    z-index: 2000;
+    background: #050505;
+    transition: left 0.3s ease;
+    box-shadow: 8px 0 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .browse-sidebar.mobile-open {
+    left: 0;
+  }
+
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    background: #0a0a0a;
+    border: 1px solid #1f1f1f;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 2001;
+  }
+
+  .browse-main {
+    margin-left: 0;
+    padding: 72px 16px 16px;
+  }
+
+  .browse-content {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .browse-right {
+    position: static;
+  }
+
+  .job-actions {
+    flex-direction: column;
+  }
+
+  .job-actions button {
+    width: 100%;
+  }
+
+  .job-top {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .job-match {
+    align-self: flex-start;
+  }
 }

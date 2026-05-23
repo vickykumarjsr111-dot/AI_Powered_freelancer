@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { Menu, X } from 'lucide-react';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
@@ -78,6 +80,7 @@ export default function Dashboard() {
   const [activeNav, setActiveNav]       = useState('dashboard');
   const [saved, setSaved]               = useState(new Set());
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const profileRef = useRef(null);
   const navigate = useNavigate();
 
@@ -126,6 +129,7 @@ export default function Dashboard() {
 
   const handleNavigation = (itemId) => {
   setActiveNav(itemId);
+  setMobileMenuOpen(false);
   switch (itemId) {
     case 'dashboard': navigate('/freelancer/dashboard');  break;
     case 'jobs':      navigate('/freelancer/jobs');       break;
@@ -161,7 +165,7 @@ export default function Dashboard() {
     <div className="dash-shell">
 
       {/* ── Sidebar ── */}
-      <aside className="dash-sidebar">
+      <aside className={`dash-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="dash-brand">
           <div className="brand-icon">
             <img src="/image.png" alt="Logo"
@@ -246,18 +250,32 @@ export default function Dashboard() {
         </div>
       </aside>
 
-      {/* ── Main ── */}
+      {createPortal(
+          <button
+          className={`mobile-menu-btn ${mobileMenuOpen ? 'mobile-menu-btn--open' : ''}`}
+          onClick={() => setMobileMenuOpen((prev) => !prev)}
+          aria-label="Toggle menu"
+        >
+          {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>,
+        document.body
+      )}
+
+      <div
+        className={`dash-overlay ${mobileMenuOpen ? 'dash-overlay--active' : ''}`}
+        onClick={() => setMobileMenuOpen(false)}
+      />
+
       <main className="dash-main">
         <div className="dash-header">
-  <div>
-    <h1 className="dash-greeting">{getGreeting()}, {firstName} 👋</h1>
-    <p className="dash-sub">
-      Your AI found <strong>4 new matches</strong> since yesterday
-    </p>
-  </div>
-</div>
+          <div>
+            <h1 className="dash-greeting">{getGreeting()}, {firstName} 👋</h1>
+            <p className="dash-sub">
+              Your AI found <strong>4 new matches</strong> since yesterday
+            </p>
+          </div>
+        </div>
 
-        {/* Stats */}
         <div className="stats-row">
           {STATS.map((s) => (
             <div key={s.label} className="stat-card">
@@ -268,7 +286,6 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Content */}
         <div className="content-grid">
           <section className="jobs-col">
             <div className="section-hdr">
@@ -329,7 +346,6 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* Right Panel */}
           <aside className="right-col">
             <div className="panel-card">
               <h2 className="section-title">Activity</h2>
