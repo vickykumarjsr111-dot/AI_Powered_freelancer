@@ -97,6 +97,7 @@ export default function ClientContracts() {
 
     const routes = {
       dashboard: '/client/dashboard',
+      'post-job': '/client/post-job',
       messages: '/client/messages',
       contracts: '/client/contracts',
       settings: '/client/profile'
@@ -177,6 +178,7 @@ export default function ClientContracts() {
         <nav className="cc-nav">
           {[
             { id: 'dashboard', label: 'Dashboard' },
+            { id: 'post-job', label: 'Post a Job' },
             { id: 'messages', label: 'Messages' },
             { id: 'contracts', label: 'Contracts', badge: counts.active },
             { id: 'settings', label: 'Settings' }

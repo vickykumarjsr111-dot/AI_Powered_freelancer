@@ -11,6 +11,7 @@ import FreelancerMessages from './components/FreelancerMessages';
 import Chat from './components/Chat';
 import FreelancerProposals from './components/Freelancerproposals';
 import ClientContracts from './components/Clientcontracts';
+import ClientAddJob    from './components/ClientAddJob';
 
 export default function App() {
   const navigate = useNavigate();
@@ -72,6 +73,9 @@ export default function App() {
           path="/chat/:chatId"
           element={<Chat />}
         />
+
+        <Route path="/client/post-job"   element={<ClientAddJob />} />
+        <Route path="/client/contracts"  element={<ClientContracts />} />
       </Routes>
     </VideoBackground>
   );

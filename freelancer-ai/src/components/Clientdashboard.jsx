@@ -59,12 +59,12 @@ export default function ClientDashboard() {
 
   const handleNavigation = (id) => {
   setActiveNav(id);
-
-  if (id === 'dashboard') navigate('/client/dashboard');
-  if (id === 'messages') navigate('/client/messages');
-  if (id === 'contracts') navigate('/client/contracts');
-  if (id === 'settings') navigate('/client/settings');
-};
+    if (id === 'dashboard') navigate('/client/dashboard');
+    if (id === 'post-job')  navigate('/client/post-job');
+    if (id === 'messages')  navigate('/client/messages');
+    if (id === 'contracts') navigate('/client/contracts');
+    if (id === 'settings')  navigate('/freelancer/profile');
+  };
 
   const handleMessage = async (freelancer) => {
     const currentUser = auth.currentUser;
@@ -144,11 +144,12 @@ export default function ClientDashboard() {
 
         <nav className="cdash-nav">
           {[
-            { id:'dashboard', label:'Dashboard' },
-            { id:'messages',  label:'Messages'  },
-            { id:'contracts', label:'Contracts' },
-            { id:'settings',  label:'Settings'  },
-          ].map((item) => (
+             { id:'dashboard', label:'Dashboard'  },
+             { id:'post-job',  label:'Post a Job' },
+             { id:'messages',  label:'Messages'   },
+             { id:'contracts', label:'Contracts'  },
+             { id:'settings',  label:'Settings'   },
+           ].map((item) => (
             <button key={item.id}
               className={`cnav-btn ${activeNav === item.id ? 'cnav-btn--active' : ''}`}
               onClick={() => handleNavigation(item.id)}>
@@ -156,8 +157,9 @@ export default function ClientDashboard() {
             </button>
           ))}
 
+          <div style={{ flex:1 }} />
           <button className="cnav-btn" onClick={handleLogout}
-            style={{ marginTop:'auto', color:'#ef4444' }}>
+            style={{ color:'#ef4444' }}>
             <span className="cnav-label">Logout</span>
           </button>
         </nav>

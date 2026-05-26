@@ -3,60 +3,9 @@ import { createPortal } from 'react-dom';
 import { Menu, X } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import './BrowseJobs.css';
-
-const JOBS = [
-  {
-    id: 1,
-    title: 'Senior React Developer',
-    company: 'TechFlow Inc.',
-    budget: '$4,500',
-    duration: '3 months',
-    match: 97,
-    skills: ['React', 'Node.js', 'TypeScript'],
-    proposals: 4,
-    posted: '2h ago',
-    description: 'Build and maintain a modern SaaS dashboard with React, reusable UI architecture, and scalable frontend systems.',
-  },
-  {
-    id: 2,
-    title: 'Full Stack Engineer',
-    company: 'PayBridge',
-    budget: '$6,000',
-    duration: '4 months',
-    match: 91,
-    skills: ['React', 'Python', 'AWS'],
-    proposals: 7,
-    posted: '5h ago',
-    description: 'Work on fintech APIs, frontend dashboards, and cloud deployment infrastructure.',
-  },
-  {
-    id: 3,
-    title: 'Frontend Architect',
-    company: 'ShopNest',
-    budget: '$3,200',
-    duration: '2 months',
-    match: 85,
-    skills: ['Next.js', 'Tailwind'],
-    proposals: 11,
-    posted: '1d ago',
-    description: 'Lead UI architecture for a scalable e-commerce platform and optimize frontend performance.',
-  },
-  {
-    id: 4,
-    title: 'React Native Developer',
-    company: 'Wanderly',
-    budget: '$5,800',
-    duration: '6 months',
-    match: 79,
-    skills: ['React Native', 'Redux'],
-    proposals: 9,
-    posted: '2d ago',
-    description: 'Revamp an existing travel mobile app with better UX, navigation, and performance.',
-  },
-];
 
 function getInitials(name = '') {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
@@ -66,6 +15,7 @@ export default function BrowseJobs() {
   const navigate = useNavigate();
 
   const [userData, setUserData]         = useState(null);
+  const [jobs, setJobs]                 = useState([]);
   const [savedJobs, setSavedJobs]       = useState(new Set());
   const [searchTerm, setSearchTerm]     = useState('');
   const [selectedSkill, setSelectedSkill] = useState('All');
@@ -89,7 +39,13 @@ export default function BrowseJobs() {
         setLoading(false);
       }
     });
-    return () => unsub();
+
+    const q = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'));
+    const unsubJobs = onSnapshot(q, (snap) => {
+      setJobs(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    });
+
+    return () => { unsub(); unsubJobs(); };
   }, [navigate]);
 
   
@@ -127,12 +83,12 @@ export default function BrowseJobs() {
     });
   };
 
-  const filteredJobs = JOBS.filter((job) => {
+  const filteredJobs = jobs.filter((job) => {
     const searchMatch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.company.toLowerCase().includes(searchTerm.toLowerCase());
+      (job.clientName || '').toLowerCase().includes(searchTerm.toLowerCase());
     const skillMatch =
-      selectedSkill === 'All' || job.skills.includes(selectedSkill);
+      selectedSkill === 'All' || (job.skills || []).includes(selectedSkill);
     return searchMatch && skillMatch;
   });
 
@@ -269,20 +225,22 @@ export default function BrowseJobs() {
                 <div className="job-top">
                   <div>
                     <h3>{job.title}</h3>
-                    <p>{job.company}</p>
+                    <p>{job.clientName || 'Client'}</p>
                   </div>
-                  <div className="job-match">{job.match}% Match</div>
+                  <div className="job-match">🟢 Open</div>
                 </div>
 
                 <div className="job-meta">
-                  <span>{job.budget}</span>
+                  <span>${job.budget}</span>
                   <span>{job.duration}</span>
-                  <span>{job.proposals} proposals</span>
-                  <span>{job.posted}</span>
+                  <span>{job.experience || 'Any level'}</span>
+                  <span>{job.createdAt?.toDate
+                    ? job.createdAt.toDate().toLocaleDateString()
+                    : 'Just now'}</span>
                 </div>
-
+                  
                 <div className="job-tags">
-                  {job.skills.map((skill) => (
+                  {(job.skills || []).map((skill) => (
                     <span key={skill}>{skill}</span>
                   ))}
                 </div>
@@ -324,7 +282,7 @@ export default function BrowseJobs() {
         <div className="job-modal-overlay" onClick={() => setSelectedJob(null)}>
           <div className="job-modal" onClick={(e) => e.stopPropagation()}>
             <h2>{selectedJob.title}</h2>
-            <p className="modal-company">{selectedJob.company}</p>
+            <p className="modal-company">{selectedJob.clientName || 'Client'}</p>
             <p>{selectedJob.description}</p>
             <div className="modal-tags">
               {selectedJob.skills.map((skill) => (

@@ -45,6 +45,7 @@ export default function ClientMessages() {
 
   const handleNavigation = (id) => {
     if (id === 'dashboard') navigate('/client/dashboard');
+    if (id === 'post-job') navigate('/client/post-job');
     if (id === 'messages') navigate('/client/messages');
     if (id === 'contracts') navigate('/client/contracts');
     if (id === 'settings') navigate('/client/profile');
@@ -86,6 +87,7 @@ export default function ClientMessages() {
         <nav className="cmsg-nav">
           {[
             { id: 'dashboard', label: 'Dashboard' },
+            { id: 'post-job', label: 'Post a Job' },
             { id: 'messages', label: 'Messages' },
             { id: 'contracts', label: 'Contracts' },
             { id: 'settings', label: 'Settings' }
