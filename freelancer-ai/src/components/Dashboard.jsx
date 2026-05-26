@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Menu, X } from 'lucide-react';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot, orderBy, query, where } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
@@ -64,7 +64,11 @@ export default function Dashboard() {
       }
     });
 
-    const q = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'));
+    const q = query(
+      collection(db, 'jobs'),
+      where('open', '==', true),
+      orderBy('createdAt', 'desc')
+    );
     const unsubJobs = onSnapshot(q, (snap) => {
       setJobs(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });

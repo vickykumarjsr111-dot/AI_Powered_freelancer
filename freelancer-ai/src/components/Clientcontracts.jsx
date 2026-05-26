@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import {
   collection, query, where, onSnapshot,
-  doc, getDoc,setDoc,updateDoc, addDoc, serverTimestamp
+  doc, getDoc, updateDoc, addDoc,
+  getDocs, serverTimestamp
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
@@ -11,43 +12,6 @@ import './ClientContracts.css';
 function getInitials(name = '') {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
 }
-
-const handleMessage = async (contract) => {
-  try {
-    // Check if a chat already exists for this contract
-    const chatsQ = query(
-      collection(db, 'chats'),
-      where('clientId',     '==', auth.currentUser.uid),
-      where('freelancerId', '==', contract.freelancerId)
-    );
-    const snap = await getDocs(chatsQ);
-
-    let chatId;
-
-    if (!snap.empty) {
-      // Chat already exists — reuse it
-      chatId = snap.docs[0].id;
-    } else {
-      // Create a new chat document
-      const chatRef = await addDoc(collection(db, 'chats'), {
-        clientId:       auth.currentUser.uid,
-        clientName:     userData?.name || 'Client',
-        freelancerId:   contract.freelancerId,
-        freelancerName: contract.freelancerName,
-        contractId:     contract.id,
-        projectTitle:   contract.projectTitle,
-        lastMessage:    '',
-        lastAt:         serverTimestamp(),
-        createdAt:      serverTimestamp(),
-      });
-      chatId = chatRef.id;
-    }
-
-    navigate(`/chat/${chatId}`);
-  } catch (err) {
-    console.error('Error opening chat:', err);
-  }
-};
 
 function StatusBadge({ status }) {
   const map = {
@@ -63,17 +27,52 @@ function StatusBadge({ status }) {
 }
 
 export default function ClientContracts() {
-  const [userData, setUserData]   = useState(null);
-  const [proposals, setProposals] = useState([]);  // incoming proposals
-  const [contracts, setContracts] = useState([]);  // accepted contracts
-  const [loading, setLoading]     = useState(true);
+  const [userData,  setUserData]  = useState(null);
+  const [proposals, setProposals] = useState([]);
+  const [contracts, setContracts] = useState([]);
+  const [loading,   setLoading]   = useState(true);
   const [activeNav, setActiveNav] = useState('contracts');
-  const [filter, setFilter]       = useState('all');
-  const [updating, setUpdating]   = useState(null);
-  const [tab, setTab]             = useState('proposals'); // 'proposals' | 'contracts'
+  const [filter,    setFilter]    = useState('all');
+  const [updating,  setUpdating]  = useState(null);
+  const [tab,       setTab]       = useState('proposals');
 
   const navigate = useNavigate();
 
+  // ── Message handler (inside component → has access to userData + navigate) ──
+  const handleMessage = async (contract) => {
+    try {
+      const chatsQ = query(
+        collection(db, 'chats'),
+        where('clientId',     '==', auth.currentUser.uid),
+        where('freelancerId', '==', contract.freelancerId)
+      );
+      const snap = await getDocs(chatsQ);
+
+      let chatId;
+      if (!snap.empty) {
+        chatId = snap.docs[0].id;
+      } else {
+        const chatRef = await addDoc(collection(db, 'chats'), {
+          clientId:       auth.currentUser.uid,
+          clientName:     userData?.name || 'Client',
+          freelancerId:   contract.freelancerId,
+          freelancerName: contract.freelancerName,
+          contractId:     contract.id,
+          projectTitle:   contract.projectTitle,
+          lastMessage:    '',
+          lastAt:         serverTimestamp(),
+          createdAt:      serverTimestamp(),
+        });
+        chatId = chatRef.id;
+      }
+
+      navigate(`/chat/${chatId}`);
+    } catch (err) {
+      console.error('Error opening chat:', err);
+    }
+  };
+
+  // ── Auth + realtime listeners ──
   useEffect(() => {
     let unsubProposals = null;
     let unsubContracts = null;
@@ -84,7 +83,6 @@ export default function ClientContracts() {
       const snap = await getDoc(doc(db, 'users', user.uid));
       if (snap.exists()) setUserData(snap.data());
 
-      // ── Proposals sent TO this client's jobs ──
       const proposalsQ = query(
         collection(db, 'proposals'),
         where('clientId', '==', user.uid)
@@ -94,7 +92,6 @@ export default function ClientContracts() {
         setLoading(false);
       });
 
-      // ── Contracts created for this client ──
       const contractsQ = query(
         collection(db, 'contracts'),
         where('clientId', '==', user.uid)
@@ -125,14 +122,14 @@ export default function ClientContracts() {
     if (routes[id]) navigate(routes[id]);
   };
 
-  // ── Accept proposal → create contract ──
+  // ── Accept proposal → create contract → close job ──
   const acceptProposal = async (proposal) => {
     setUpdating(proposal.id);
     try {
-      // 1. Mark proposal as accepted
+      // 1. Mark proposal accepted
       await updateDoc(doc(db, 'proposals', proposal.id), { status: 'accepted' });
 
-      // 2. Create a contract document
+      // 2. Create contract
       await addDoc(collection(db, 'contracts'), {
         clientId:       auth.currentUser.uid,
         clientName:     userData?.name || 'Client',
@@ -146,6 +143,12 @@ export default function ClientContracts() {
         createdAt:      serverTimestamp(),
         deadline:       'Not specified',
       });
+
+      // 3. Close the job so no freelancer can see it anymore
+      if (proposal.jobId) {
+        await updateDoc(doc(db, 'jobs', proposal.jobId), { open: false });
+      }
+
     } catch (err) {
       console.error(err);
     } finally {
@@ -204,6 +207,8 @@ export default function ClientContracts() {
 
   return (
     <div className="cc-shell">
+
+      {/* ── Sidebar ── */}
       <aside className="cc-sidebar">
         <div className="cc-brand">
           <div className="cc-brand-icon">
@@ -244,6 +249,7 @@ export default function ClientContracts() {
         </div>
       </aside>
 
+      {/* ── Main ── */}
       <main className="cc-main">
         <div className="cc-header">
           <div>
@@ -255,9 +261,9 @@ export default function ClientContracts() {
         {/* ── Stats ── */}
         <div className="cc-stats">
           {[
-            { label: 'Total Contracts', value: counts.all        },
-            { label: 'Active',          value: counts.active     },
-            { label: 'Completed',       value: counts.completed  },
+            { label: 'Total Contracts', value: counts.all              },
+            { label: 'Active',          value: counts.active           },
+            { label: 'Completed',       value: counts.completed        },
             { label: 'New Proposals',   value: pendingProposals.length },
           ].map((s) => (
             <div key={s.label} className="cc-stat-card">
@@ -291,7 +297,8 @@ export default function ClientContracts() {
               <div className="cc-empty">No proposals received yet.</div>
             ) : (
               <div className="cc-list">
-                {/* Pending first */}
+
+                {/* Pending */}
                 {pendingProposals.length > 0 && (
                   <>
                     <p style={{ color:'#888', fontSize:'13px', marginBottom:'8px' }}>
@@ -314,9 +321,7 @@ export default function ClientContracts() {
                             <span className="cc-bid">${p.bidAmount}</span>
                           </div>
                         </div>
-
                         <p className="cc-cover-letter">{p.coverLetter}</p>
-
                         <div className="cc-card-footer">
                           <div className="cc-actions">
                             <button className="cc-btn-cancel"
@@ -336,7 +341,7 @@ export default function ClientContracts() {
                   </>
                 )}
 
-                {/* Reviewed proposals */}
+                {/* Reviewed */}
                 {reviewedProposals.length > 0 && (
                   <>
                     <p style={{ color:'#888', fontSize:'13px', margin:'16px 0 8px' }}>
@@ -426,19 +431,23 @@ export default function ClientContracts() {
                             onClick={() => updateContractStatus(contract.id, 'completed')}>
                             {updating === contract.id ? 'Saving...' : 'Mark Complete'}
                           </button>
-                          {/* ── Message button now works ── */}
                           <button className="cc-btn-message"
                             onClick={() => handleMessage(contract)}>
-                            Message
+                            💬 Message
                           </button>
                         </div>
-                      )
-                      }
+                      )}
                       {contract.status !== 'active' && (
-                        <button className="cc-btn-reset"
-                          onClick={() => updateContractStatus(contract.id, 'active')}>
-                          Reactivate
-                        </button>
+                        <div className="cc-actions">
+                          <button className="cc-btn-reset"
+                            onClick={() => updateContractStatus(contract.id, 'active')}>
+                            Reactivate
+                          </button>
+                          <button className="cc-btn-message"
+                            onClick={() => handleMessage(contract)}>
+                            💬 Message
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>

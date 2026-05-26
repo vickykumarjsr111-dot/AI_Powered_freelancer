@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import {
+  doc, getDoc, collection, onSnapshot,
+  orderBy, query, where               // ← added where
+} from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import './BrowseJobs.css';
 
@@ -44,7 +47,12 @@ export default function BrowseJobs() {
       }
     });
 
-    const q = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'));
+    // ── Only fetch jobs where open === true ──────────────────────────────
+    const q = query(
+      collection(db, 'jobs'),
+      where('open', '==', true),      // ← filters out accepted jobs
+      orderBy('createdAt', 'desc')
+    );
     const unsubJobs = onSnapshot(q, (snap) => {
       setJobs(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
@@ -105,7 +113,7 @@ export default function BrowseJobs() {
   return (
     <div className="browse-shell">
 
-      {/* Sidebar */}
+      {/* ── Sidebar ── */}
       <aside className={`browse-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="browse-brand">
           <div className="brand-icon">
@@ -116,12 +124,12 @@ export default function BrowseJobs() {
 
         <nav className="browse-nav">
           {[
-            { id: 'dashboard', label: 'Dashboard'  },
-            { id: 'jobs',      label: 'Browse Jobs' },
-            { id: 'proposals', label: 'Proposals'   },
-            { id: 'messages',  label: 'Messages'    },
-            { id: 'earnings',  label: 'Earnings'    },
-            { id: 'settings',  label: 'Settings'    },
+            { id: 'dashboard', label: 'Dashboard'   },
+            { id: 'jobs',      label: 'Browse Jobs'  },
+            { id: 'proposals', label: 'Proposals'    },
+            { id: 'messages',  label: 'Messages'     },
+            { id: 'earnings',  label: 'Earnings'     },
+            { id: 'settings',  label: 'Settings'     },
           ].map((item) => (
             <button key={item.id}
               className={`nav-btn ${item.id === 'jobs' ? 'nav-btn--active' : ''}`}
@@ -135,7 +143,7 @@ export default function BrowseJobs() {
         <div className="browse-profile" ref={profileRef}
           onClick={() => setProfileMenuOpen((p) => !p)}>
           <div className="profile-avatar">{initials}</div>
-          <div>
+          <div className="profile-info">
             <p className="profile-name">{name}</p>
             <p className="profile-role" style={{ textTransform: 'capitalize' }}>{role}</p>
           </div>
@@ -147,7 +155,7 @@ export default function BrowseJobs() {
                 <div className="bpopup-av">{initials}</div>
                 <div>
                   <p className="bpopup-name">{name}</p>
-                  <p className="bpopup-role" style={{ textTransform:'capitalize' }}>{role}</p>
+                  <p className="bpopup-role" style={{ textTransform: 'capitalize' }}>{role}</p>
                 </div>
               </div>
               <div className="bpopup-divider" />
@@ -171,7 +179,7 @@ export default function BrowseJobs() {
 
       <main className="browse-main">
         {!mobileMenuOpen && createPortal(
-          <button className="fp-mobile-menu-btn" onClick={() => setMobileMenuOpen(true)}
+          <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(true)}
             aria-label="Toggle menu">
             <Menu size={22} />
           </button>,
@@ -182,10 +190,8 @@ export default function BrowseJobs() {
           onClick={() => setMobileMenuOpen(false)} />
 
         <div className="browse-header">
-          <div>
-            <h1>Browse Jobs</h1>
-            <p>AI-matched opportunities tailored for your skills</p>
-          </div>
+          <h1>Browse Jobs</h1>
+          <p>AI-matched opportunities tailored for your skills</p>
         </div>
 
         <div className="search-section">
@@ -240,7 +246,6 @@ export default function BrowseJobs() {
                     <button onClick={() => toggleSave(job.id)}>
                       {savedJobs.has(job.id) ? '♥ Saved' : '♡ Save'}
                     </button>
-                    {/* ── Details: stopPropagation so overlay doesn't swallow it ── */}
                     <button onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }}>
                       Details
                     </button>
@@ -292,7 +297,7 @@ export default function BrowseJobs() {
             <p style={{ fontSize:'14px', color:'#ccc', lineHeight:1.6 }}>
               {selectedJob.description || 'No description provided.'}
             </p>
-            <div className="modal-tags" style={{ margin:'12px 0' }}>
+            <div className="modal-tags">
               {(selectedJob.skills || []).map((skill) => (
                 <span key={skill}>{skill}</span>
               ))}
