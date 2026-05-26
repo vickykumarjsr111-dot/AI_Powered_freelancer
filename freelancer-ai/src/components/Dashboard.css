@@ -367,9 +367,6 @@
 .job-info {
   flex: 1;
   min-width: 0;
-   display: flex;
-  flex-direction: column;
-  gap: 6px;
 }
 
 .job-title {
@@ -474,8 +471,7 @@
 }
 
 .btn-apply:hover {
-  color: #fff;
-  border-color: #3a3a3a;
+  background: transparent;
 }
 
 .btn-details {
