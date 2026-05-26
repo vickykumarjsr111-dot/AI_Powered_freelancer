@@ -1,35 +1,78 @@
-import { useState } from 'react';
-import Home from './components/Navbar';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import VideoBackground from './components/VideoBackground';
+import Navbar from './components/Navbar';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-import VideoBackground from './components/VideoBackground';
+import Profile from './components/Profile';
+import BrowseJobs from './components/BrowseJobs';
+import ClientDashboard from './components/ClientDashboard';
+import ClientMessages from './components/ClientMessages';
+import FreelancerMessages from './components/FreelancerMessages';
+import Chat from './components/Chat';
+import FreelancerProposals from './components/FreelancerProposals';
+import ClientContracts from './components/Clientcontracts';
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState('Home');
-  const [user, setUser] = useState(null);
-
-  const navigateToLogin = () => setCurrentPage('Login');
-  const navigateToHome = () => setCurrentPage('Home');
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    setUser({ name: 'Alex Kumar', role: 'Full-Stack Dev', initials: 'AK' });
-    setCurrentPage('Dashboard');
-  };
-
-  const renderPage = () => {
-    if (currentPage === 'Dashboard' && user) {
-      return <Dashboard user={user} />;
-    }
-    if (currentPage === 'Login') {
-      return <Login onBackToHome={navigateToHome} onLogin={handleLogin} />;
-    }
-    return <Home onNavigateToLogin={navigateToLogin} />;
-  };
+  const navigate = useNavigate();
 
   return (
     <VideoBackground>
-      {renderPage()}
+      <Routes>
+        <Route
+          path="/"
+          element={<Navbar onNavigateToLogin={() => navigate('/login')} />}
+        />
+
+        <Route
+          path="/login"
+          element={<Login onBackToHome={() => navigate('/')} />}
+        />
+
+        <Route
+          path="/freelancer/dashboard"
+          element={<Dashboard />}
+        />
+
+        <Route
+          path="/freelancer/profile"
+          element={<Profile />}
+        />
+
+        <Route
+          path="/freelancer/jobs"
+          element={<BrowseJobs />}
+        />
+
+        <Route
+          path="/freelancer/messages"
+          element={<FreelancerMessages />}
+        />
+
+        <Route
+          path="/freelancer/proposals"
+          element={<FreelancerProposals />}
+        />
+
+        <Route
+          path="/client/dashboard"
+          element={<ClientDashboard />}
+        />
+
+        <Route
+          path="/client/messages"
+          element={<ClientMessages />}
+        />
+
+        <Route
+          path="/client/contracts"
+          element={<ClientContracts />}
+        />
+
+        <Route
+          path="/chat/:chatId"
+          element={<Chat />}
+        />
+      </Routes>
     </VideoBackground>
   );
 }
