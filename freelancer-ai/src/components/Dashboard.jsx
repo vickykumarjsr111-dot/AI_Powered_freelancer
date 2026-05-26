@@ -2,83 +2,16 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Menu, X } from 'lucide-react';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
-const JOBS = [
-  {
-    id: 1,
-    title: 'Senior React Developer – SaaS Dashboard',
-    company: 'TechFlow Inc.',
-    budget: '$4,500',
-    duration: '3 months',
-    match: 97,
-    skills: ['React', 'Node.js', 'TypeScript'],
-    proposals: 4,
-    posted: '2h ago',
-  },
-  {
-    id: 2,
-    title: 'Full-Stack Engineer – Fintech Startup',
-    company: 'Paybridge',
-    budget: '$6,000',
-    duration: '4 months',
-    match: 91,
-    skills: ['React', 'Python', 'AWS'],
-    proposals: 7,
-    posted: '5h ago',
-  },
-  {
-    id: 3,
-    title: 'Frontend Architect – E-commerce Platform',
-    company: 'ShopNest',
-    budget: '$3,200',
-    duration: '2 months',
-    match: 85,
-    skills: ['Next.js', 'Tailwind'],
-    proposals: 12,
-    posted: '1d ago',
-  },
-  {
-    id: 4,
-    title: 'React Native Developer – Mobile Revamp',
-    company: 'Wanderly',
-    budget: '$5,800',
-    duration: '6 months',
-    match: 79,
-    skills: ['React Native', 'Redux'],
-    proposals: 9,
-    posted: '2d ago',
-  },
-];
-
 const defaultACTIVITY = [
-  {
-    id: 1,
-    type: 'pending',
-    text: 'Proposal sent to DataViz Studio',
-    timestamp: Date.now() - 60 * 60 * 1000,
-  },
-  {
-    id: 2,
-    type: 'new',
-    text: 'Message from Aria at CloudBuild',
-    timestamp: Date.now() - 3 * 60 * 60 * 1000,
-  },
-  {
-    id: 3,
-    type: 'success',
-    text: 'Contract started with NovaSpark',
-    timestamp: Date.now() - 24 * 60 * 60 * 1000,
-  },
-  {
-    id: 4,
-    type: 'success',
-    text: '5-star review from Kelvin M.',
-    timestamp: Date.now() - 2 * 24 * 60 * 60 * 1000,
-  },
+  { id: 1, type: 'pending', text: 'Proposal sent to DataViz Studio',  timestamp: Date.now() - 60 * 60 * 1000 },
+  { id: 2, type: 'new',     text: 'Message from Aria at CloudBuild',  timestamp: Date.now() - 3 * 60 * 60 * 1000 },
+  { id: 3, type: 'success', text: 'Contract started with NovaSpark',  timestamp: Date.now() - 24 * 60 * 60 * 1000 },
+  { id: 4, type: 'success', text: '5-star review from Kelvin M.',     timestamp: Date.now() - 2 * 24 * 60 * 60 * 1000 },
 ];
 
 const CIRC = 2 * Math.PI * 14;
@@ -95,11 +28,12 @@ function getInitials(name = '') {
 }
 
 export default function Dashboard() {
-  const [userData, setUserData]               = useState(null);
-  const [loading, setLoading]                 = useState(true);
-  const [activeNav, setActiveNav]             = useState('dashboard');
-  const [saved, setSaved]                     = useState(new Set());
-  const [activity, setActivity]               = useState(() => {
+  const [userData, setUserData]             = useState(null);
+  const [loading, setLoading]               = useState(true);
+  const [activeNav, setActiveNav]           = useState('dashboard');
+  const [saved, setSaved]                   = useState(new Set());
+  const [jobs, setJobs]                     = useState([]);
+  const [activity, setActivity]             = useState(() => {
     const savedActivity = localStorage.getItem('activityData');
     return savedActivity ? JSON.parse(savedActivity) : defaultACTIVITY;
   });
@@ -122,15 +56,21 @@ export default function Dashboard() {
         setLoading(false);
       }
     });
-    return () => unsubscribe();
+
+    // ── Live jobs from Firestore ──
+    const q = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'));
+    const unsubJobs = onSnapshot(q, (snap) => {
+      setJobs(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    });
+
+    return () => { unsubscribe(); unsubJobs(); };
   }, [navigate]);
 
   // ── Close profile popup on outside click ──
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (profileRef.current && !profileRef.current.contains(e.target)) {
+      if (profileRef.current && !profileRef.current.contains(e.target))
         setProfileMenuOpen(false);
-      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -333,7 +273,7 @@ export default function Dashboard() {
           <div>
             <h1 className="dash-greeting">{getGreeting()}, {firstName} 👋</h1>
             <p className="dash-sub">
-              Your AI found <strong>4 new matches</strong> since yesterday
+              Your AI found <strong>{jobs.length} open jobs</strong> right now
             </p>
           </div>
         </div>
@@ -356,63 +296,78 @@ export default function Dashboard() {
             </div>
 
             <div className="job-list">
-              {JOBS.map((job) => {
-                const arc = (job.match / 100) * CIRC;
-                return (
-                  <div key={job.id} className="job-card">
-                    <div className="job-top">
-                      <div className="match-ring">
-                        <svg viewBox="0 0 36 36" width="36" height="36">
-                          <circle className="ring-bg"   cx="18" cy="18" r="14" />
-                          <circle className="ring-fill" cx="18" cy="18" r="14"
-                            strokeDasharray={`${arc.toFixed(1)} ${CIRC}`}
-                            transform="rotate(-90 18 18)" />
-                        </svg>
-                        <span className="match-pct">{job.match}%</span>
+              {jobs.length === 0 ? (
+                <p style={{ color: '#888', fontSize: '14px', padding: '16px 0' }}>
+                  No jobs posted yet. Check back soon!
+                </p>
+              ) : (
+                jobs.map((job) => {
+                  const match = 85; // placeholder — wire up real matching later
+                  const arc   = (match / 100) * CIRC;
+                  return (
+                    <div key={job.id} className="job-card">
+                      <div className="job-top">
+                        <div className="match-ring">
+                          <svg viewBox="0 0 36 36" width="36" height="36">
+                            <circle className="ring-bg"   cx="18" cy="18" r="14" />
+                            <circle className="ring-fill" cx="18" cy="18" r="14"
+                              strokeDasharray={`${arc.toFixed(1)} ${CIRC}`}
+                              transform="rotate(-90 18 18)" />
+                          </svg>
+                          <span className="match-pct">{match}%</span>
+                        </div>
+
+                        <div className="job-info">
+                          <p className="job-title">{job.title}</p>
+                          <p className="job-company">{job.clientName || 'Client'}</p>
+                        </div>
+
+                        <button
+                          className={`save-btn ${saved.has(job.id) ? 'save-btn--saved' : ''}`}
+                          onClick={() => toggleSave(job.id)}>
+                          {saved.has(job.id) ? '♥' : '♡'}
+                        </button>
                       </div>
 
-                      <div className="job-info">
-                        <p className="job-title">{job.title}</p>
-                        <p className="job-company">{job.company}</p>
+                      <div className="job-meta">
+                        <span className="job-budget">${job.budget}</span>
+                        <span className="sep">·</span>
+                        <span>{job.duration}</span>
+                        <span className="sep">·</span>
+                        <span>{job.experience || 'Any level'}</span>
+                        <span className="job-posted">
+                          {job.createdAt?.toDate
+                            ? job.createdAt.toDate().toLocaleDateString()
+                            : 'Just now'}
+                        </span>
                       </div>
 
-                      <button
-                        className={`save-btn ${saved.has(job.id) ? 'save-btn--saved' : ''}`}
-                        onClick={() => toggleSave(job.id)}>
-                        {saved.has(job.id) ? '♥' : '♡'}
-                      </button>
-                    </div>
+                      <div className="job-tags">
+                        {(job.skills || []).map((skill) => (
+                          <span key={skill} className="skill-tag">{skill}</span>
+                        ))}
+                      </div>
 
-                    <div className="job-meta">
-                      <span className="job-budget">{job.budget}</span>
-                      <span className="sep">·</span>
-                      <span>{job.duration}</span>
-                      <span className="sep">·</span>
-                      <span>{job.proposals} proposals</span>
-                      <span className="job-posted">{job.posted}</span>
+                      <div className="job-actions">
+                        <button
+                          className="btn-apply"
+                          onClick={() => {
+                            addActivity('pending', `Started proposal for ${job.clientName || 'Client'}`);
+                          
+                            // Strip Timestamp — not serializable via navigation state
+                            const { createdAt, ...serializableJob } = job;
+                          
+                            navigate('/freelancer/proposals', { state: { applyJob: serializableJob } });
+                          }}
+                        >
+                          Apply Now
+                        </button>
+                        <button className="btn-details">Details</button>
+                      </div>
                     </div>
-
-                    <div className="job-tags">
-                      {job.skills.map((skill) => (
-                        <span key={skill} className="skill-tag">{skill}</span>
-                      ))}
-                    </div>
-
-                    <div className="job-actions">
-                      <button
-                        className="btn-apply"
-                        onClick={() => {
-                          addActivity('pending', `Started proposal for ${job.company}`);
-                          navigate('/freelancer/proposals');
-                        }}
-                      >
-                        Apply Now
-                      </button>
-                      <button className="btn-details">Details</button>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </section>
 

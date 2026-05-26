@@ -11,21 +11,26 @@ function getInitials(name = '') {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
 }
 
+
+function serializeJob(job) {
+  const { createdAt, ...rest } = job;
+  return rest;
+}
+
 export default function BrowseJobs() {
   const navigate = useNavigate();
 
-  const [userData, setUserData]         = useState(null);
-  const [jobs, setJobs]                 = useState([]);
-  const [savedJobs, setSavedJobs]       = useState(new Set());
-  const [searchTerm, setSearchTerm]     = useState('');
-  const [selectedSkill, setSelectedSkill] = useState('All');
-  const [selectedJob, setSelectedJob]   = useState(null);
-  const [loading, setLoading]           = useState(true);
+  const [userData, setUserData]               = useState(null);
+  const [jobs, setJobs]                       = useState([]);
+  const [savedJobs, setSavedJobs]             = useState(new Set());
+  const [searchTerm, setSearchTerm]           = useState('');
+  const [selectedSkill, setSelectedSkill]     = useState('All');
+  const [selectedJob, setSelectedJob]         = useState(null);
+  const [loading, setLoading]                 = useState(true);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen]   = useState(false);
   const profileRef = useRef(null);
 
-  
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) { navigate('/login'); return; }
@@ -48,7 +53,6 @@ export default function BrowseJobs() {
     return () => { unsub(); unsubJobs(); };
   }, [navigate]);
 
-  
   useEffect(() => {
     const handle = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target))
@@ -81,6 +85,10 @@ export default function BrowseJobs() {
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
+  };
+
+  const handleApply = (job) => {
+    navigate('/freelancer/proposals', { state: { applyJob: serializeJob(job) } });
   };
 
   const filteredJobs = jobs.filter((job) => {
@@ -127,7 +135,6 @@ export default function BrowseJobs() {
               {item.label}
             </button>
           ))}
-
           <button className="nav-btn logout-btn" onClick={handleLogout}>
             Logout
           </button>
@@ -172,17 +179,13 @@ export default function BrowseJobs() {
       </aside>
 
       <main className="browse-main">
-        {!mobileMenuOpen &&
-  createPortal(
-    <button
-      className="fp-mobile-menu-btn"
-      onClick={() => setMobileMenuOpen(true)}
-      aria-label="Toggle menu"
-    >
-      <Menu size={22} />
-    </button>,
-    document.body
-  )}
+        {!mobileMenuOpen && createPortal(
+          <button className="fp-mobile-menu-btn" onClick={() => setMobileMenuOpen(true)}
+            aria-label="Toggle menu">
+            <Menu size={22} />
+          </button>,
+          document.body
+        )}
 
         <div
           className={`browse-overlay ${mobileMenuOpen ? 'browse-overlay--active' : ''}`}
@@ -220,43 +223,50 @@ export default function BrowseJobs() {
         {/* Jobs */}
         <div className="browse-content">
           <section className="jobs-list">
-            {filteredJobs.map((job) => (
-              <div key={job.id} className="job-card">
-                <div className="job-top">
-                  <div>
-                    <h3>{job.title}</h3>
-                    <p>{job.clientName || 'Client'}</p>
+            {filteredJobs.length === 0 ? (
+              <p style={{ color: '#888', fontSize: '14px', padding: '16px 0' }}>
+                No jobs found.
+              </p>
+            ) : (
+              filteredJobs.map((job) => (
+                <div key={job.id} className="job-card">
+                  <div className="job-top">
+                    <div>
+                      <h3>{job.title}</h3>
+                      <p>{job.clientName || 'Client'}</p>
+                    </div>
+                    <div className="job-match">🟢 Open</div>
                   </div>
-                  <div className="job-match">🟢 Open</div>
-                </div>
 
-                <div className="job-meta">
-                  <span>${job.budget}</span>
-                  <span>{job.duration}</span>
-                  <span>{job.experience || 'Any level'}</span>
-                  <span>{job.createdAt?.toDate
-                    ? job.createdAt.toDate().toLocaleDateString()
-                    : 'Just now'}</span>
-                </div>
-                  
-                <div className="job-tags">
-                  {(job.skills || []).map((skill) => (
-                    <span key={skill}>{skill}</span>
-                  ))}
-                </div>
+                  <div className="job-meta">
+                    <span>${job.budget}</span>
+                    <span>{job.duration}</span>
+                    <span>{job.experience || 'Any level'}</span>
+                    <span>
+                      {job.createdAt?.toDate
+                        ? job.createdAt.toDate().toLocaleDateString()
+                        : 'Just now'}
+                    </span>
+                  </div>
 
-                <div className="job-actions">
-                  <button onClick={() => toggleSave(job.id)}>
-                    {savedJobs.has(job.id) ? '♥ Saved' : '♡ Save'}
-                  </button>
-                  <button onClick={() => setSelectedJob(job)}>Details</button>
-                  <button className="apply-btn"
-                    onClick={() => navigate('/freelancer/proposals')}>
-                    Apply Now
-                  </button>
+                  <div className="job-tags">
+                    {(job.skills || []).map((skill) => (
+                      <span key={skill}>{skill}</span>
+                    ))}
+                  </div>
+
+                  <div className="job-actions">
+                    <button onClick={() => toggleSave(job.id)}>
+                      {savedJobs.has(job.id) ? '♥ Saved' : '♡ Save'}
+                    </button>
+                    <button onClick={() => setSelectedJob(job)}>Details</button>
+                    <button className="apply-btn" onClick={() => handleApply(job)}>
+                      Apply Now
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </section>
 
           {/* Right Panel */}
@@ -277,7 +287,7 @@ export default function BrowseJobs() {
         </div>
       </main>
 
-      {/* Modal */}
+      {/* Details Modal */}
       {selectedJob && (
         <div className="job-modal-overlay" onClick={() => setSelectedJob(null)}>
           <div className="job-modal" onClick={(e) => e.stopPropagation()}>
@@ -285,7 +295,7 @@ export default function BrowseJobs() {
             <p className="modal-company">{selectedJob.clientName || 'Client'}</p>
             <p>{selectedJob.description}</p>
             <div className="modal-tags">
-              {selectedJob.skills.map((skill) => (
+              {(selectedJob.skills || []).map((skill) => (
                 <span key={skill}>{skill}</span>
               ))}
             </div>
@@ -296,7 +306,7 @@ export default function BrowseJobs() {
               </button>
               <button className="close-modal"
                 style={{ flex:1, background:'#fff', color:'#000' }}
-                onClick={() => { setSelectedJob(null); navigate('/freelancer/proposals'); }}>
+                onClick={() => { setSelectedJob(null); handleApply(selectedJob); }}>
                 Apply Now
               </button>
             </div>
