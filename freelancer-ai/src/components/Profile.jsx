@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import './Profile.css';
 
 export default function Profile() {
+
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -23,7 +24,9 @@ export default function Profile() {
   });
 
   useEffect(() => {
+
     const fetchProfile = async () => {
+
       const user = auth.currentUser;
 
       if (!user) {
@@ -32,13 +35,17 @@ export default function Profile() {
       }
 
       try {
-        const userSnap = await getDoc(doc(db, 'users', user.uid));
+
+        const userSnap = await getDoc(
+          doc(db, 'users', user.uid)
+        );
 
         const freelancerSnap = await getDoc(
           doc(db, 'freelancers', user.uid)
         );
 
         if (userSnap.exists()) {
+
           const userData = userSnap.data();
 
           setProfileData((prev) => ({
@@ -46,9 +53,15 @@ export default function Profile() {
             name: userData.name || '',
             role: userData.role || '',
           }));
+
+          // LOAD SAVED PROFILE PHOTO
+          if (userData.profilePhoto) {
+            setPhotoPreview(userData.profilePhoto);
+          }
         }
 
         if (freelancerSnap.exists()) {
+
           const freelancerData = freelancerSnap.data();
 
           setProfileData((prev) => ({
@@ -66,37 +79,50 @@ export default function Profile() {
               freelancerData.location || '',
           }));
         }
+
       } catch (error) {
+
         console.error(
           'Error loading profile:',
           error
         );
+
       } finally {
+
         setLoading(false);
+
       }
     };
 
     fetchProfile();
+
   }, [navigate]);
 
   const handleChange = (e) => {
+
     setProfileData({
       ...profileData,
       [e.target.name]: e.target.value,
     });
+
   };
 
+  // PROFILE PHOTO CHANGE
   const handlePhotoChange = (e) => {
+
     const file = e.target.files[0];
 
     if (file) {
-      setPhotoPreview(
-        URL.createObjectURL(file)
-      );
+
+      const imageUrl = URL.createObjectURL(file);
+
+      setPhotoPreview(imageUrl);
+
     }
   };
 
   const handleSave = async (e) => {
+
     e.preventDefault();
 
     const user = auth.currentUser;
@@ -107,20 +133,29 @@ export default function Profile() {
     }
 
     try {
+
+      // SAVE USER DATA
       await updateDoc(
         doc(db, 'users', user.uid),
         {
           name: profileData.name,
           role: profileData.role,
+
+          // SAVE PROFILE PHOTO
+          profilePhoto: photoPreview,
         }
       );
 
+      // SAVE FREELANCER DATA
       if (profileData.role === 'freelancer') {
+
         await setDoc(
           doc(db, 'freelancers', user.uid),
           {
             uid: user.uid,
+
             name: profileData.name,
+
             bio: profileData.bio,
 
             skills: profileData.skills
@@ -150,15 +185,23 @@ export default function Profile() {
       if (
         profileData.role === 'freelancer'
       ) {
+
         navigate('/freelancer/dashboard');
+
       } else if (
         profileData.role === 'client'
       ) {
+
         navigate('/client/dashboard');
+
       } else {
+
         navigate('/freelancer/dashboard');
+
       }
+
     } catch (error) {
+
       console.error(
         'Profile update failed:',
         error
@@ -169,6 +212,7 @@ export default function Profile() {
   };
 
   if (loading) {
+
     return (
       <div className="loading-profile">
         Loading profile...
@@ -177,53 +221,77 @@ export default function Profile() {
   }
 
   return (
+
     <div className="profile-page">
+
       <div className="profile-card">
 
         {/* PROFILE AVATAR */}
+
         <div className="profile-avatar-wrapper">
 
           <div className="profile-avatar">
+
             {photoPreview ? (
+
               <img
                 src={photoPreview}
                 alt="Profile"
+                className="profile-avatar-img"
               />
-            ) : (
-              profileData.name
-                ?.charAt(0)
-                ?.toUpperCase() || 'U'
-            )}
-          </div>
 
-          <label className="profile-upload-btn">
-            +
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handlePhotoChange}
-              hidden
-            />
-          </label>
+            ) : (
+
+              <span className="profile-avatar-text">
+
+                {profileData.name
+                  ?.charAt(0)
+                  ?.toUpperCase() || 'U'}
+
+              </span>
+
+            )}
+
+            {/* PLUS BUTTON */}
+
+            <label className="profile-upload-btn">
+
+              +
+
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
+                hidden
+              />
+
+            </label>
+
+          </div>
 
         </div>
 
         <h1>Update Profile</h1>
 
         {/* ROLE SELECTOR */}
+
         <div className="role-selector">
+
           {[
             {
               value: 'freelancer',
               emoji: '💼',
               label: 'Freelancer',
             },
+
             {
               value: 'client',
               emoji: '🏢',
               label: 'Client',
             },
+
           ].map((r) => (
+
             <button
               key={r.value}
               type="button"
@@ -239,6 +307,7 @@ export default function Profile() {
                 })
               }
             >
+
               <span className="role-emoji">
                 {r.emoji}
               </span>
@@ -246,9 +315,14 @@ export default function Profile() {
               <span className="role-label">
                 {r.label}
               </span>
+
             </button>
+
           ))}
+
         </div>
+
+        {/* FORM */}
 
         <form
           className="profile-form"
@@ -256,7 +330,9 @@ export default function Profile() {
         >
 
           {/* FULL NAME */}
+
           <div className="form-group">
+
             <label>Full Name</label>
 
             <input
@@ -267,13 +343,18 @@ export default function Profile() {
               onChange={handleChange}
               required
             />
+
           </div>
 
           {/* FREELANCER FIELDS */}
+
           {profileData.role ===
             'freelancer' && (
+
             <>
+
               <div className="form-group">
+
                 <label>
                   Hourly Rate ($)
                 </label>
@@ -287,9 +368,11 @@ export default function Profile() {
                   }
                   onChange={handleChange}
                 />
+
               </div>
 
               <div className="form-group full-width">
+
                 <label>Skills</label>
 
                 <input
@@ -299,9 +382,11 @@ export default function Profile() {
                   value={profileData.skills}
                   onChange={handleChange}
                 />
+
               </div>
 
               <div className="form-group full-width">
+
                 <label>Bio</label>
 
                 <textarea
@@ -310,9 +395,11 @@ export default function Profile() {
                   value={profileData.bio}
                   onChange={handleChange}
                 />
+
               </div>
 
               <div className="form-group">
+
                 <label>
                   Portfolio Link
                 </label>
@@ -326,9 +413,11 @@ export default function Profile() {
                   }
                   onChange={handleChange}
                 />
+
               </div>
 
               <div className="form-group">
+
                 <label>Experience</label>
 
                 <input
@@ -340,12 +429,17 @@ export default function Profile() {
                   }
                   onChange={handleChange}
                 />
+
               </div>
+
             </>
+
           )}
 
           {/* LOCATION */}
+
           <div className="form-group full-width">
+
             <label>Location</label>
 
             <input
@@ -355,9 +449,11 @@ export default function Profile() {
               value={profileData.location}
               onChange={handleChange}
             />
+
           </div>
 
           {/* ACTION BUTTONS */}
+
           <div className="profile-actions">
 
             <button
@@ -383,8 +479,11 @@ export default function Profile() {
             </button>
 
           </div>
+
         </form>
+
       </div>
+
     </div>
   );
 }
