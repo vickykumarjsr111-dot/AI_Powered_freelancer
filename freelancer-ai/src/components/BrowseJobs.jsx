@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { Menu, X } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
@@ -70,6 +72,7 @@ export default function BrowseJobs() {
   const [selectedJob, setSelectedJob]   = useState(null);
   const [loading, setLoading]           = useState(true);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const profileRef = useRef(null);
 
   
@@ -105,6 +108,7 @@ export default function BrowseJobs() {
   };
 
   const handleNavigation = (id) => {
+    setMobileMenuOpen(false);
     switch (id) {
       case 'dashboard': navigate('/freelancer/dashboard'); break;
       case 'jobs':      navigate('/freelancer/jobs');      break;
@@ -142,7 +146,7 @@ export default function BrowseJobs() {
     <div className="browse-shell">
 
       {/* Sidebar */}
-      <aside className="browse-sidebar">
+      <aside className={`browse-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="browse-brand">
           <div className="brand-icon">
             <img src="/image.png" alt="Logo" />
@@ -211,8 +215,24 @@ export default function BrowseJobs() {
         </div>
       </aside>
 
-      {/* Main */}
       <main className="browse-main">
+        {!mobileMenuOpen &&
+  createPortal(
+    <button
+      className="fp-mobile-menu-btn"
+      onClick={() => setMobileMenuOpen(true)}
+      aria-label="Toggle menu"
+    >
+      <Menu size={22} />
+    </button>,
+    document.body
+  )}
+
+        <div
+          className={`browse-overlay ${mobileMenuOpen ? 'browse-overlay--active' : ''}`}
+          onClick={() => setMobileMenuOpen(false)}
+        />
+
         <div className="browse-header">
           <div>
             <h1>Browse Jobs</h1>
