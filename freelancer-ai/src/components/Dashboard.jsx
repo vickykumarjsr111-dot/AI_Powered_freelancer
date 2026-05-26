@@ -52,13 +52,35 @@ const JOBS = [
   },
 ];
 
-const ACTIVITY = [
-  { id: 1, type: 'pending', text: 'Proposal sent to DataViz Studio', time: '1h ago' },
-  { id: 2, type: 'new',     text: 'Message from Aria at CloudBuild', time: '3h ago' },
-  { id: 3, type: 'success', text: 'Contract started with NovaSpark',  time: 'Yesterday' },
-  { id: 4, type: 'success', text: '5-star review from Kelvin M.',      time: '2d ago' },
-];
+const defaultACTIVITY = [
+  {
+    id: 1,
+    type: 'pending',
+    text: 'Proposal sent to DataViz Studio',
+    timestamp: Date.now() - 60 * 60 * 1000,
+  },
 
+  {
+    id: 2,
+    type: 'new',
+    text: 'Message from Aria at CloudBuild',
+    timestamp: Date.now() - 3 * 60 * 60 * 1000,
+  },
+
+  {
+    id: 3,
+    type: 'success',
+    text: 'Contract started with NovaSpark',
+    timestamp: Date.now() - 24 * 60 * 60 * 1000,
+  },
+
+  {
+    id: 4,
+    type: 'success',
+    text: '5-star review from Kelvin M.',
+    timestamp: Date.now() - 2 * 24 * 60 * 60 * 1000,
+  },
+];
 const CIRC = 2 * Math.PI * 14;
 
 function getGreeting() {
@@ -77,6 +99,14 @@ export default function Dashboard() {
   const [loading, setLoading]           = useState(true);
   const [activeNav, setActiveNav]       = useState('dashboard');
   const [saved, setSaved]               = useState(new Set());
+const [activity, setActivity] = useState(() => {
+
+  const savedActivity = localStorage.getItem('activityData');
+
+  return savedActivity
+    ? JSON.parse(savedActivity)
+    : defaultACTIVITY;
+});
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileRef = useRef(null);
   const navigate = useNavigate();
@@ -117,12 +147,97 @@ export default function Dashboard() {
   };
 
   const toggleSave = (id) => {
-    setSaved((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+
+  const isAlreadySaved = saved.has(id);
+
+  setSaved((prev) => {
+    const next = new Set(prev);
+
+    next.has(id)
+      ? next.delete(id)
+      : next.add(id);
+
+    return next;
+  });
+
+  addActivity(
+    isAlreadySaved ? 'pending' : 'new',
+    isAlreadySaved
+      ? 'Job removed from saved items'
+      : 'Job saved to favorites'
+  );
+};
+
+  const addActivity = (type, text) => {
+  const newActivity = {
+    id: Date.now(),
+    type,
+    text,
+    timestamp: Date.now(),
   };
+
+  setActivity((prev) => [newActivity, ...prev]);
+};
+
+const formatTimeAgo = (timestamp) => {
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+
+  if (seconds < 60) return 'Just now';
+
+  const minutes = Math.floor(seconds / 60);
+
+  if (minutes < 60) {
+    return `${minutes}m ago`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+
+  if (hours < 24) {
+    return `${hours}h ago`;
+  }
+
+  const days = Math.floor(hours / 24);
+
+  if (days === 1) {
+    return 'Yesterday';
+  }
+
+  return `${days}d ago`;
+};
+
+useEffect(() => {
+
+  const interval = setInterval(() => {
+    setActivity((prev) => [...prev]);
+  }, 60000);
+
+  return () => clearInterval(interval);
+
+}, []);
+
+useEffect(() => {
+  localStorage.setItem(
+    'activityData',
+    JSON.stringify(activity)
+  );
+}, [activity]); 
+useEffect(() => {
+
+  const storedActivity = localStorage.getItem('newActivity');
+
+  if (storedActivity) {
+
+    const parsedActivity = JSON.parse(storedActivity);
+
+    setActivity((prev) => [
+      parsedActivity,
+      ...prev
+    ]);
+
+    localStorage.removeItem('newActivity');
+  }
+
+}, []);
 
   const handleNavigation = (itemId) => {
   setActiveNav(itemId);
@@ -275,77 +390,150 @@ export default function Dashboard() {
               <h2 className="section-title">AI-matched jobs</h2>
               <span className="live-chip">Live</span>
             </div>
+<div className="job-list">
+  {JOBS.map((job) => {
+    const arc = (job.match / 100) * CIRC;
 
-            <div className="job-list">
-              {JOBS.map((job) => {
-                const arc = (job.match / 100) * CIRC;
-                return (
-                  <div key={job.id} className="job-card">
-                    <div className="job-top">
-                      <div className="match-ring">
-                        <svg viewBox="0 0 36 36" width="36" height="36">
-                          <circle className="ring-bg"   cx="18" cy="18" r="14" />
-                          <circle className="ring-fill" cx="18" cy="18" r="14"
-                            strokeDasharray={`${arc.toFixed(1)} ${CIRC}`}
-                            transform="rotate(-90 18 18)" />
-                        </svg>
-                        <span className="match-pct">{job.match}%</span>
-                      </div>
+    return (
+      <div key={job.id} className="job-card">
 
-                      <div className="job-info">
-                        <p className="job-title">{job.title}</p>
-                        <p className="job-company">{job.company}</p>
-                      </div>
+        <div className="job-top">
+          <div className="match-ring">
+            <svg viewBox="0 0 36 36" width="36" height="36">
+              <circle
+                className="ring-bg"
+                cx="18"
+                cy="18"
+                r="14"
+              />
 
-                      <button
-                        className={`save-btn ${saved.has(job.id) ? 'save-btn--saved' : ''}`}
-                        onClick={() => toggleSave(job.id)}>
-                        {saved.has(job.id) ? '♥' : '♡'}
-                      </button>
-                    </div>
+              <circle
+                className="ring-fill"
+                cx="18"
+                cy="18"
+                r="14"
+                strokeDasharray={`${arc.toFixed(1)} ${CIRC}`}
+                transform="rotate(-90 18 18)"
+              />
+            </svg>
 
-                    <div className="job-meta">
-                      <span className="job-budget">{job.budget}</span>
-                      <span className="sep">·</span>
-                      <span>{job.duration}</span>
-                      <span className="sep">·</span>
-                      <span>{job.proposals} proposals</span>
-                      <span className="job-posted">{job.posted}</span>
-                    </div>
+            <span className="match-pct">
+              {job.match}%
+            </span>
+          </div>
 
-                    <div className="job-tags">
-                      {job.skills.map((skill) => (
-                        <span key={skill} className="skill-tag">{skill}</span>
-                      ))}
-                    </div>
+          <div className="job-info">
+            <p className="job-title">
+              {job.title}
+            </p>
 
-                    <div className="job-actions">
-                      <button className="btn-apply">Apply Now</button>
-                      <button className="btn-details">Details</button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+            <p className="job-company">
+              {job.company}
+            </p>
+          </div>
 
-          {/* Right Panel */}
-          <aside className="right-col">
-            <div className="panel-card">
-              <h2 className="section-title">Activity</h2>
-              <ul className="activity-list">
-                {ACTIVITY.map((a) => (
-                  <li key={a.id} className="activity-item">
-                    <span className={`activity-dot activity-dot--${a.type}`} />
-                    <div>
-                      <p className="activity-text">{a.text}</p>
-                      <p className="activity-time">{a.time}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <button
+            className={`save-btn ${
+              saved.has(job.id)
+                ? 'save-btn--saved'
+                : ''
+            }`}
+            onClick={() => toggleSave(job.id)}
+          >
+            {saved.has(job.id) ? '♥' : '♡'}
+          </button>
+        </div>
 
+        <div className="job-meta">
+          <span className="job-budget">
+            {job.budget}
+          </span>
+
+          <span className="sep">·</span>
+
+          <span>
+            {job.duration}
+          </span>
+
+          <span className="sep">·</span>
+
+          <span>
+            {job.proposals} proposals
+          </span>
+
+          <span className="job-posted">
+            {job.posted}
+          </span>
+        </div>
+
+        <div className="job-tags">
+          {job.skills.map((skill) => (
+            <span
+              key={skill}
+              className="skill-tag"
+            >
+              {skill}
+            </span>
+          ))}
+        </div>
+
+        <div className="job-actions">
+          <button
+  className="btn-apply"
+  onClick={() => {
+
+    addActivity(
+      'pending',
+      `Started proposal for ${job.company}`
+    );
+
+    navigate('/freelancer/proposals');
+  }}
+>
+  Apply Now
+</button>
+
+          <button className="btn-details">
+            Details
+          </button>
+        </div>
+
+      </div>
+    );
+  })}
+</div>
+</section>
+
+         {/* Right Panel */}
+<aside className="right-col">
+  <div className="panel-card">
+    <h2 className="section-title">Activity</h2>
+
+    <ul className="activity-list">
+      {activity.map((a) => (
+        <li key={a.id} className="activity-item">
+
+          <span
+            className={`activity-dot activity-dot--${a.type}`}
+          />
+
+          <div>
+            <p className="activity-text">
+              {a.text}
+            </p>
+
+            <p className="activity-time">
+              {a.timestamp
+                ? formatTimeAgo(a.timestamp)
+                : a.time}
+            </p>
+          </div>
+
+        </li>
+      ))}
+    </ul>
+
+  </div>
             <div className="panel-card">
               <h2 className="section-title">Profile strength</h2>
               <div className="strength-row">
