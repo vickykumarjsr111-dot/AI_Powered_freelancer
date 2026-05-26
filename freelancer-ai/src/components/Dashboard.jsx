@@ -54,11 +54,31 @@ const JOBS = [
   },
 ];
 
-const ACTIVITY = [
-  { id: 1, type: 'pending', text: 'Proposal sent to DataViz Studio', time: '1h ago' },
-  { id: 2, type: 'new',     text: 'Message from Aria at CloudBuild', time: '3h ago' },
-  { id: 3, type: 'success', text: 'Contract started with NovaSpark',  time: 'Yesterday' },
-  { id: 4, type: 'success', text: '5-star review from Kelvin M.',      time: '2d ago' },
+const defaultACTIVITY = [
+  {
+    id: 1,
+    type: 'pending',
+    text: 'Proposal sent to DataViz Studio',
+    timestamp: Date.now() - 60 * 60 * 1000,
+  },
+  {
+    id: 2,
+    type: 'new',
+    text: 'Message from Aria at CloudBuild',
+    timestamp: Date.now() - 3 * 60 * 60 * 1000,
+  },
+  {
+    id: 3,
+    type: 'success',
+    text: 'Contract started with NovaSpark',
+    timestamp: Date.now() - 24 * 60 * 60 * 1000,
+  },
+  {
+    id: 4,
+    type: 'success',
+    text: '5-star review from Kelvin M.',
+    timestamp: Date.now() - 2 * 24 * 60 * 60 * 1000,
+  },
 ];
 
 const CIRC = 2 * Math.PI * 14;
@@ -75,21 +95,23 @@ function getInitials(name = '') {
 }
 
 export default function Dashboard() {
-  const [userData, setUserData]         = useState(null);
-  const [loading, setLoading]           = useState(true);
-  const [activeNav, setActiveNav]       = useState('dashboard');
-  const [saved, setSaved]               = useState(new Set());
+  const [userData, setUserData]               = useState(null);
+  const [loading, setLoading]                 = useState(true);
+  const [activeNav, setActiveNav]             = useState('dashboard');
+  const [saved, setSaved]                     = useState(new Set());
+  const [activity, setActivity]               = useState(() => {
+    const savedActivity = localStorage.getItem('activityData');
+    return savedActivity ? JSON.parse(savedActivity) : defaultACTIVITY;
+  });
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen]   = useState(false);
   const profileRef = useRef(null);
-  const navigate = useNavigate();
+  const navigate   = useNavigate();
 
+  // ── Auth ──
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (!currentUser) {
-        navigate('/login');
-        return;
-      }
+      if (!currentUser) { navigate('/login'); return; }
       try {
         const snap = await getDoc(doc(db, 'users', currentUser.uid));
         if (snap.exists()) setUserData(snap.data());
@@ -103,7 +125,7 @@ export default function Dashboard() {
     return () => unsubscribe();
   }, [navigate]);
 
-  
+  // ── Close profile popup on outside click ──
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -114,36 +136,77 @@ export default function Dashboard() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // ── Persist activity to localStorage ──
+  useEffect(() => {
+    localStorage.setItem('activityData', JSON.stringify(activity));
+  }, [activity]);
+
+  // ── Pick up cross-page activity events ──
+  useEffect(() => {
+    const stored = localStorage.getItem('newActivity');
+    if (stored) {
+      setActivity((prev) => [JSON.parse(stored), ...prev]);
+      localStorage.removeItem('newActivity');
+    }
+  }, []);
+
+  // ── Re-render timestamps every minute ──
+  useEffect(() => {
+    const interval = setInterval(() => setActivity((prev) => [...prev]), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // ── Helpers ──
+  const addActivity = (type, text) => {
+    setActivity((prev) => [{ id: Date.now(), type, text, timestamp: Date.now() }, ...prev]);
+  };
+
+  const formatTimeAgo = (timestamp) => {
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if (seconds < 60) return 'Just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return days === 1 ? 'Yesterday' : `${days}d ago`;
+  };
+
   const handleLogout = async () => {
     await signOut(auth);
     navigate('/');
   };
 
   const toggleSave = (id) => {
+    const isAlreadySaved = saved.has(id);
     setSaved((prev) => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
+    addActivity(
+      isAlreadySaved ? 'pending' : 'new',
+      isAlreadySaved ? 'Job removed from saved items' : 'Job saved to favorites'
+    );
   };
 
   const handleNavigation = (itemId) => {
-  setActiveNav(itemId);
-  setMobileMenuOpen(false);
-  switch (itemId) {
-    case 'dashboard': navigate('/freelancer/dashboard');  break;
-    case 'jobs':      navigate('/freelancer/jobs');       break;
-    case 'proposals': navigate('/freelancer/proposals');  break;
-    case 'settings':  navigate('/freelancer/profile');    break;
-    case 'messages':  navigate('/freelancer/messages');   break;
-    default: break;
-   }
+    setActiveNav(itemId);
+    setMobileMenuOpen(false);
+    switch (itemId) {
+      case 'dashboard': navigate('/freelancer/dashboard'); break;
+      case 'jobs':      navigate('/freelancer/jobs');      break;
+      case 'proposals': navigate('/freelancer/proposals'); break;
+      case 'settings':  navigate('/freelancer/profile');   break;
+      case 'messages':  navigate('/freelancer/messages');  break;
+      default: break;
+    }
   };
 
   if (loading) {
     return (
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'center',
-        minHeight:'100vh', color:'#fff', fontSize:'14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center',
+        minHeight: '100vh', color: '#fff', fontSize: '14px' }}>
         Loading...
       </div>
     );
@@ -155,10 +218,10 @@ export default function Dashboard() {
   const firstName = name.split(' ')[0];
 
   const STATS = [
-    { label: 'Profile Views',      value: '284',   delta: '↑ +18%' },
-    { label: 'Proposals Sent',     value: '12',    delta: '↑ +3'   },
-    { label: 'Active Contracts',   value: '3',     delta: null      },
-    { label: 'Earned This Month',  value: '$8.3k', delta: '↑ +22%' },
+    { label: 'Profile Views',     value: '284',   delta: '↑ +18%' },
+    { label: 'Proposals Sent',    value: '12',    delta: '↑ +3'   },
+    { label: 'Active Contracts',  value: '3',     delta: null      },
+    { label: 'Earned This Month', value: '$8.3k', delta: '↑ +22%' },
   ];
 
   return (
@@ -176,12 +239,12 @@ export default function Dashboard() {
 
         <nav className="dash-nav">
           {[
-            { id: 'dashboard',  label: 'Dashboard' },
-            { id: 'jobs',       label: 'Browse Jobs' },
-            { id: 'proposals',  label: 'Proposals' },
-            { id: 'messages',   label: 'Messages' },
-            { id: 'earnings',   label: 'Earnings' },
-            { id: 'settings',   label: 'Settings' },
+            { id: 'dashboard', label: 'Dashboard'   },
+            { id: 'jobs',      label: 'Browse Jobs' },
+            { id: 'proposals', label: 'Proposals'   },
+            { id: 'messages',  label: 'Messages'    },
+            { id: 'earnings',  label: 'Earnings'    },
+            { id: 'settings',  label: 'Settings'    },
           ].map((item) => (
             <button
               key={item.id}
@@ -212,11 +275,8 @@ export default function Dashboard() {
 
           <span className="online-dot" />
 
-          {/* Popup */}
           {profileMenuOpen && (
             <div className="profile-popup" onClick={(e) => e.stopPropagation()}>
-
-              {/* Header */}
               <div className="profile-popup-header">
                 <div className="profile-popup-av">{initials}</div>
                 <div>
@@ -244,14 +304,14 @@ export default function Dashboard() {
                 onClick={() => { setProfileMenuOpen(false); handleLogout(); }}>
                 🚪 &nbsp;Logout
               </button>
-
             </div>
           )}
         </div>
       </aside>
 
+      {/* ── Mobile hamburger (portalled to body) ── */}
       {createPortal(
-          <button
+        <button
           className={`mobile-menu-btn ${mobileMenuOpen ? 'mobile-menu-btn--open' : ''}`}
           onClick={() => setMobileMenuOpen((prev) => !prev)}
           aria-label="Toggle menu"
@@ -261,11 +321,13 @@ export default function Dashboard() {
         document.body
       )}
 
+      {/* ── Mobile overlay ── */}
       <div
         className={`dash-overlay ${mobileMenuOpen ? 'dash-overlay--active' : ''}`}
         onClick={() => setMobileMenuOpen(false)}
       />
 
+      {/* ── Main ── */}
       <main className="dash-main">
         <div className="dash-header">
           <div>
@@ -337,7 +399,15 @@ export default function Dashboard() {
                     </div>
 
                     <div className="job-actions">
-                      <button className="btn-apply">Apply Now</button>
+                      <button
+                        className="btn-apply"
+                        onClick={() => {
+                          addActivity('pending', `Started proposal for ${job.company}`);
+                          navigate('/freelancer/proposals');
+                        }}
+                      >
+                        Apply Now
+                      </button>
                       <button className="btn-details">Details</button>
                     </div>
                   </div>
@@ -350,12 +420,14 @@ export default function Dashboard() {
             <div className="panel-card">
               <h2 className="section-title">Activity</h2>
               <ul className="activity-list">
-                {ACTIVITY.map((a) => (
+                {activity.map((a) => (
                   <li key={a.id} className="activity-item">
                     <span className={`activity-dot activity-dot--${a.type}`} />
                     <div>
                       <p className="activity-text">{a.text}</p>
-                      <p className="activity-time">{a.time}</p>
+                      <p className="activity-time">
+                        {a.timestamp ? formatTimeAgo(a.timestamp) : a.time}
+                      </p>
                     </div>
                   </li>
                 ))}
