@@ -471,7 +471,7 @@
 }
 
 .btn-apply:hover {
-  background: #e5e5e5;
+  background: transparent;
 }
 
 .btn-details {

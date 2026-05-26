@@ -9,7 +9,7 @@ import ClientDashboard from './components/ClientDashboard';
 import ClientMessages from './components/ClientMessages';
 import FreelancerMessages from './components/FreelancerMessages';
 import Chat from './components/Chat';
-import FreelancerProposals from './components/FreelancerProposals';
+import FreelancerProposals from './components/Freelancerproposals';
 import ClientContracts from './components/Clientcontracts';
 import ClientAddJob    from './components/ClientAddJob';
 

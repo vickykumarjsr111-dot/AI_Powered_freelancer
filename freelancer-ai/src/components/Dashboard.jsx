@@ -400,7 +400,8 @@ export default function Dashboard() {
               <p className="strength-hint">
                 Add a portfolio to reach <strong>90%</strong> and get 3× more visibility.
               </p>
-              <button className="btn-full-outline">Complete Profile</button>
+              <button className="btn-full-outline" onClick={() => navigate('/freelancer/profile')}> Complete Profile
+              </button>
             </div>
 
             <div className="panel-card panel-card--ai">
