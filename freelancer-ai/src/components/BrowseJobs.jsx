@@ -11,7 +11,6 @@ function getInitials(name = '') {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
 }
 
-
 function serializeJob(job) {
   const { createdAt, ...rest } = job;
   return rest;
@@ -62,10 +61,7 @@ export default function BrowseJobs() {
     return () => document.removeEventListener('mousedown', handle);
   }, []);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate('/');
-  };
+  const handleLogout = async () => { await signOut(auth); navigate('/'); };
 
   const handleNavigation = (id) => {
     setMobileMenuOpen(false);
@@ -127,20 +123,15 @@ export default function BrowseJobs() {
             { id: 'earnings',  label: 'Earnings'    },
             { id: 'settings',  label: 'Settings'    },
           ].map((item) => (
-            <button
-              key={item.id}
+            <button key={item.id}
               className={`nav-btn ${item.id === 'jobs' ? 'nav-btn--active' : ''}`}
-              onClick={() => handleNavigation(item.id)}
-            >
+              onClick={() => handleNavigation(item.id)}>
               {item.label}
             </button>
           ))}
-          <button className="nav-btn logout-btn" onClick={handleLogout}>
-            Logout
-          </button>
+          <button className="nav-btn logout-btn" onClick={handleLogout}>Logout</button>
         </nav>
 
-        {/* Profile row with popup */}
         <div className="browse-profile" ref={profileRef}
           onClick={() => setProfileMenuOpen((p) => !p)}>
           <div className="profile-avatar">{initials}</div>
@@ -187,10 +178,8 @@ export default function BrowseJobs() {
           document.body
         )}
 
-        <div
-          className={`browse-overlay ${mobileMenuOpen ? 'browse-overlay--active' : ''}`}
-          onClick={() => setMobileMenuOpen(false)}
-        />
+        <div className={`browse-overlay ${mobileMenuOpen ? 'browse-overlay--active' : ''}`}
+          onClick={() => setMobileMenuOpen(false)} />
 
         <div className="browse-header">
           <div>
@@ -199,28 +188,20 @@ export default function BrowseJobs() {
           </div>
         </div>
 
-        {/* Search */}
         <div className="search-section">
-          <input
-            type="text"
-            placeholder="Search jobs, companies..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <input type="text" placeholder="Search jobs, companies..."
+            value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           <div className="skill-filters">
             {['All', 'React', 'Node.js', 'Python', 'AWS'].map((skill) => (
-              <button
-                key={skill}
+              <button key={skill}
                 className={selectedSkill === skill ? 'skill-active' : ''}
-                onClick={() => setSelectedSkill(skill)}
-              >
+                onClick={() => setSelectedSkill(skill)}>
                 {skill}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Jobs */}
         <div className="browse-content">
           <section className="jobs-list">
             {filteredJobs.length === 0 ? (
@@ -259,7 +240,10 @@ export default function BrowseJobs() {
                     <button onClick={() => toggleSave(job.id)}>
                       {savedJobs.has(job.id) ? '♥ Saved' : '♡ Save'}
                     </button>
-                    <button onClick={() => setSelectedJob(job)}>Details</button>
+                    {/* ── Details: stopPropagation so overlay doesn't swallow it ── */}
+                    <button onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }}>
+                      Details
+                    </button>
                     <button className="apply-btn" onClick={() => handleApply(job)}>
                       Apply Now
                     </button>
@@ -269,7 +253,6 @@ export default function BrowseJobs() {
             )}
           </section>
 
-          {/* Right Panel */}
           <aside className="browse-right">
             <div className="insight-card">
               <span>AI Insight</span>
@@ -287,14 +270,29 @@ export default function BrowseJobs() {
         </div>
       </main>
 
-      {/* Details Modal */}
+      {/* ── Details Modal ── */}
       {selectedJob && (
-        <div className="job-modal-overlay" onClick={() => setSelectedJob(null)}>
-          <div className="job-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>{selectedJob.title}</h2>
+        <div className="job-modal-overlay"
+          onMouseDown={(e) => { if (e.target === e.currentTarget) setSelectedJob(null); }}>
+          <div className="job-modal">
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+              <h2>{selectedJob.title}</h2>
+              <button onClick={() => setSelectedJob(null)}
+                style={{ background:'none', border:'none', color:'#888',
+                  fontSize:'22px', cursor:'pointer', lineHeight:1 }}>×</button>
+            </div>
             <p className="modal-company">{selectedJob.clientName || 'Client'}</p>
-            <p>{selectedJob.description}</p>
-            <div className="modal-tags">
+            <div style={{ display:'flex', gap:'12px', fontSize:'13px', color:'#aaa', margin:'8px 0' }}>
+              <span>${selectedJob.budget}</span>
+              <span>·</span>
+              <span>{selectedJob.duration}</span>
+              <span>·</span>
+              <span>{selectedJob.experience || 'Any level'}</span>
+            </div>
+            <p style={{ fontSize:'14px', color:'#ccc', lineHeight:1.6 }}>
+              {selectedJob.description || 'No description provided.'}
+            </p>
+            <div className="modal-tags" style={{ margin:'12px 0' }}>
               {(selectedJob.skills || []).map((skill) => (
                 <span key={skill}>{skill}</span>
               ))}
@@ -306,7 +304,7 @@ export default function BrowseJobs() {
               </button>
               <button className="close-modal"
                 style={{ flex:1, background:'#fff', color:'#000' }}
-                onClick={() => { setSelectedJob(null); handleApply(selectedJob); }}>
+                onClick={() => { const j = selectedJob; setSelectedJob(null); handleApply(j); }}>
                 Apply Now
               </button>
             </div>

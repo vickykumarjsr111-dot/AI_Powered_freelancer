@@ -4,7 +4,7 @@ import { Menu } from 'lucide-react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import {
   collection, query, where, onSnapshot,
-  addDoc, serverTimestamp, doc, getDoc, orderBy
+  addDoc, setDoc, serverTimestamp, doc, getDoc, orderBy
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -37,68 +37,51 @@ export default function FreelancerProposals() {
   const [submitting, setSubmitting]   = useState(false);
 
   const navigate = useNavigate();
-  const location = useLocation(); // ← picks up job passed from Dashboard/BrowseJobs
+  const location = useLocation();
 
-  // ── Auth + live data ──
   useEffect(() => {
     let unsubSnap = null;
     let unsubJobs = null;
 
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) { navigate('/login'); return; }
-
       try {
         const snap = await getDoc(doc(db, 'users', user.uid));
         if (snap.exists()) setUserData(snap.data());
 
-        // Live proposals for this freelancer
-        const q = query(
-          collection(db, 'proposals'),
-          where('freelancerId', '==', user.uid)
-        );
+        const q = query(collection(db, 'proposals'), where('freelancerId', '==', user.uid));
         unsubSnap = onSnapshot(q, (snapshot) => {
           setProposals(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
           setLoading(false);
         });
 
-        // Live jobs from Firestore (same as Dashboard)
         const jobsQ = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'));
         unsubJobs = onSnapshot(jobsQ, (snapshot) => {
           setJobs(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
         });
-
       } catch (err) {
         console.error(err);
         setLoading(false);
       }
     });
 
-    return () => {
-      unsub();
-      if (unsubSnap) unsubSnap();
-      if (unsubJobs) unsubJobs();
-    };
+    return () => { unsub(); if (unsubSnap) unsubSnap(); if (unsubJobs) unsubJobs(); };
   }, [navigate]);
 
-    // ── Auto-open modal if navigated here with a job ──
+  // ── Auto-open modal when arriving via Apply Now ──
   useEffect(() => {
     if (!location.state?.applyJob) return;
-  
     const raw = location.state.applyJob;
-  
-    // Strip non-serializable fields (Firestore Timestamps)
-    const job = {
+    setSelectedJob({
       id:         raw.id,
       title:      raw.title,
       clientName: raw.clientName || raw.company || 'Client',
-      clientId:   raw.clientId || null,
+      clientId:   raw.clientId   || null,
       budget:     raw.budget,
-      skills:     raw.skills || [],
-      duration:   raw.duration || '',
+      skills:     raw.skills     || [],
+      duration:   raw.duration   || '',
       experience: raw.experience || '',
-    };
-  
-    setSelectedJob(job);
+    });
     setForm({ coverLetter: '', bidAmount: '' });
     setShowModal(true);
     window.history.replaceState({}, document.title);
@@ -132,7 +115,6 @@ export default function FreelancerProposals() {
     if (!form.coverLetter.trim() || !form.bidAmount) return;
     const user = auth.currentUser;
     if (!user || !selectedJob) return;
-
     setSubmitting(true);
     try {
       await addDoc(collection(db, 'proposals'), {
@@ -243,7 +225,6 @@ export default function FreelancerProposals() {
           </div>
 
           <div className="fp-grid">
-            {/* ── Available Jobs (live from Firestore) ── */}
             <section>
               <h2 className="fp-section-title">Available Jobs</h2>
               {jobs.length === 0 ? (
@@ -261,13 +242,11 @@ export default function FreelancerProposals() {
                           </div>
                           <span className="fp-job-budget">${job.budget}</span>
                         </div>
-
                         <div className="fp-job-tags">
                           {(job.skills || []).map((skill) => (
                             <span key={skill} className="fp-tag">{skill}</span>
                           ))}
                         </div>
-
                         <button
                           className={`fp-apply-btn ${applied ? 'fp-apply-btn--done' : ''}`}
                           onClick={() => openModal(job)}
@@ -281,7 +260,6 @@ export default function FreelancerProposals() {
               )}
             </section>
 
-            {/* ── My Proposals ── */}
             <section>
               <h2 className="fp-section-title">My Proposals</h2>
               {proposals.length === 0 ? (
@@ -316,9 +294,15 @@ export default function FreelancerProposals() {
 
         {/* ── Modal ── */}
         {showModal && selectedJob && (
-          <div className="fp-modal-overlay" onClick={() => setShowModal(false)}>
-            <div className="fp-modal" onClick={(e) => e.stopPropagation()}>
-              <h2 className="fp-modal-title">Submit Proposal</h2>
+          <div className="fp-modal-overlay"
+            onMouseDown={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}>
+            <div className="fp-modal">
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                <h2 className="fp-modal-title">Submit Proposal</h2>
+                <button onClick={() => setShowModal(false)}
+                  style={{ background:'none', border:'none', color:'#888',
+                    fontSize:'22px', cursor:'pointer', lineHeight:1 }}>×</button>
+              </div>
               <p className="fp-modal-job">{selectedJob.title}</p>
               <p className="fp-modal-company">
                 {selectedJob.clientName || selectedJob.company || 'Client'} · ${selectedJob.budget}
@@ -326,22 +310,16 @@ export default function FreelancerProposals() {
 
               <div className="fp-modal-field">
                 <label>Your Bid Amount ($)</label>
-                <input
-                  type="number"
-                  placeholder="e.g. 4000"
+                <input type="number" placeholder="e.g. 4000"
                   value={form.bidAmount}
-                  onChange={(e) => setForm({ ...form, bidAmount: e.target.value })}
-                />
+                  onChange={(e) => setForm({ ...form, bidAmount: e.target.value })} />
               </div>
 
               <div className="fp-modal-field">
                 <label>Cover Letter</label>
-                <textarea
-                  rows={5}
-                  placeholder="Why are you the best fit for this job?"
+                <textarea rows={5} placeholder="Why are you the best fit for this job?"
                   value={form.coverLetter}
-                  onChange={(e) => setForm({ ...form, coverLetter: e.target.value })}
-                />
+                  onChange={(e) => setForm({ ...form, coverLetter: e.target.value })} />
               </div>
 
               <div className="fp-modal-actions">

@@ -27,13 +27,20 @@ function getInitials(name = '') {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
 }
 
+// Strip Firestore Timestamp before passing via navigation state
+function serializeJob(job) {
+  const { createdAt, ...rest } = job;
+  return rest;
+}
+
 export default function Dashboard() {
-  const [userData, setUserData]             = useState(null);
-  const [loading, setLoading]               = useState(true);
-  const [activeNav, setActiveNav]           = useState('dashboard');
-  const [saved, setSaved]                   = useState(new Set());
-  const [jobs, setJobs]                     = useState([]);
-  const [activity, setActivity]             = useState(() => {
+  const [userData, setUserData]               = useState(null);
+  const [loading, setLoading]                 = useState(true);
+  const [activeNav, setActiveNav]             = useState('dashboard');
+  const [saved, setSaved]                     = useState(new Set());
+  const [jobs, setJobs]                       = useState([]);
+  const [selectedJob, setSelectedJob]         = useState(null); // for details modal
+  const [activity, setActivity]               = useState(() => {
     const savedActivity = localStorage.getItem('activityData');
     return savedActivity ? JSON.parse(savedActivity) : defaultACTIVITY;
   });
@@ -42,7 +49,7 @@ export default function Dashboard() {
   const profileRef = useRef(null);
   const navigate   = useNavigate();
 
-  // ── Auth ──
+  // ── Auth + live jobs ──
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) { navigate('/login'); return; }
@@ -57,7 +64,6 @@ export default function Dashboard() {
       }
     });
 
-    // ── Live jobs from Firestore ──
     const q = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'));
     const unsubJobs = onSnapshot(q, (snap) => {
       setJobs(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
@@ -76,12 +82,11 @@ export default function Dashboard() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // ── Persist activity to localStorage ──
+  // ── Persist activity ──
   useEffect(() => {
     localStorage.setItem('activityData', JSON.stringify(activity));
   }, [activity]);
 
-  // ── Pick up cross-page activity events ──
   useEffect(() => {
     const stored = localStorage.getItem('newActivity');
     if (stored) {
@@ -90,13 +95,11 @@ export default function Dashboard() {
     }
   }, []);
 
-  // ── Re-render timestamps every minute ──
   useEffect(() => {
     const interval = setInterval(() => setActivity((prev) => [...prev]), 60000);
     return () => clearInterval(interval);
   }, []);
 
-  // ── Helpers ──
   const addActivity = (type, text) => {
     setActivity((prev) => [{ id: Date.now(), type, text, timestamp: Date.now() }, ...prev]);
   };
@@ -112,10 +115,7 @@ export default function Dashboard() {
     return days === 1 ? 'Yesterday' : `${days}d ago`;
   };
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate('/');
-  };
+  const handleLogout = async () => { await signOut(auth); navigate('/'); };
 
   const toggleSave = (id) => {
     const isAlreadySaved = saved.has(id);
@@ -141,6 +141,11 @@ export default function Dashboard() {
       case 'messages':  navigate('/freelancer/messages');  break;
       default: break;
     }
+  };
+
+  const handleApply = (job) => {
+    addActivity('pending', `Started proposal for ${job.clientName || 'Client'}`);
+    navigate('/freelancer/proposals', { state: { applyJob: serializeJob(job) } });
   };
 
   if (loading) {
@@ -186,16 +191,13 @@ export default function Dashboard() {
             { id: 'earnings',  label: 'Earnings'    },
             { id: 'settings',  label: 'Settings'    },
           ].map((item) => (
-            <button
-              key={item.id}
+            <button key={item.id}
               className={`nav-btn ${activeNav === item.id ? 'nav-btn--active' : ''}`}
-              onClick={() => handleNavigation(item.id)}
-            >
+              onClick={() => handleNavigation(item.id)}>
               <span className="nav-label">{item.label}</span>
               {item.badge && <span className="nav-badge">{item.badge}</span>}
             </button>
           ))}
-
           <button className="nav-btn" onClick={handleLogout}
             style={{ marginTop: 'auto', color: '#ef4444' }}>
             <span className="nav-label">Logout</span>
@@ -205,14 +207,11 @@ export default function Dashboard() {
         {/* ── Profile row with popup ── */}
         <div className="dash-profile" ref={profileRef}
           onClick={() => setProfileMenuOpen((prev) => !prev)}>
-
           <div className="profile-av">{initials}</div>
-
           <div className="profile-info">
             <p className="profile-name">{name}</p>
             <p className="profile-role" style={{ textTransform: 'capitalize' }}>{role}</p>
           </div>
-
           <span className="online-dot" />
 
           {profileMenuOpen && (
@@ -221,25 +220,19 @@ export default function Dashboard() {
                 <div className="profile-popup-av">{initials}</div>
                 <div>
                   <p className="profile-popup-name">{name}</p>
-                  <p className="profile-popup-role"
-                    style={{ textTransform: 'capitalize' }}>{role}</p>
+                  <p className="profile-popup-role" style={{ textTransform: 'capitalize' }}>{role}</p>
                 </div>
               </div>
-
               <div className="profile-popup-divider" />
-
               <button className="profile-popup-item"
                 onClick={() => { setProfileMenuOpen(false); navigate('/freelancer/profile'); }}>
                 ✏️ &nbsp;Update Profile
               </button>
-
               <button className="profile-popup-item"
                 onClick={() => { setProfileMenuOpen(false); handleNavigation('settings'); }}>
                 ⚙️ &nbsp;Settings
               </button>
-
               <div className="profile-popup-divider" />
-
               <button className="profile-popup-item profile-popup-item--danger"
                 onClick={() => { setProfileMenuOpen(false); handleLogout(); }}>
                 🚪 &nbsp;Logout
@@ -249,23 +242,19 @@ export default function Dashboard() {
         </div>
       </aside>
 
-      {/* ── Mobile hamburger (portalled to body) ── */}
+      {/* ── Mobile hamburger ── */}
       {createPortal(
         <button
           className={`mobile-menu-btn ${mobileMenuOpen ? 'mobile-menu-btn--open' : ''}`}
           onClick={() => setMobileMenuOpen((prev) => !prev)}
-          aria-label="Toggle menu"
-        >
+          aria-label="Toggle menu">
           {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>,
         document.body
       )}
 
-      {/* ── Mobile overlay ── */}
-      <div
-        className={`dash-overlay ${mobileMenuOpen ? 'dash-overlay--active' : ''}`}
-        onClick={() => setMobileMenuOpen(false)}
-      />
+      <div className={`dash-overlay ${mobileMenuOpen ? 'dash-overlay--active' : ''}`}
+        onClick={() => setMobileMenuOpen(false)} />
 
       {/* ── Main ── */}
       <main className="dash-main">
@@ -302,7 +291,7 @@ export default function Dashboard() {
                 </p>
               ) : (
                 jobs.map((job) => {
-                  const match = 85; // placeholder — wire up real matching later
+                  const match = 85;
                   const arc   = (match / 100) * CIRC;
                   return (
                     <div key={job.id} className="job-card">
@@ -351,18 +340,15 @@ export default function Dashboard() {
                       <div className="job-actions">
                         <button
                           className="btn-apply"
-                          onClick={() => {
-                            addActivity('pending', `Started proposal for ${job.clientName || 'Client'}`);
-                          
-                            // Strip Timestamp — not serializable via navigation state
-                            const { createdAt, ...serializableJob } = job;
-                          
-                            navigate('/freelancer/proposals', { state: { applyJob: serializableJob } });
-                          }}
-                        >
+                          onClick={() => handleApply(job)}>
                           Apply Now
                         </button>
-                        <button className="btn-details">Details</button>
+                        {/* ── Details button now works ── */}
+                        <button
+                          className="btn-details"
+                          onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }}>
+                          Details
+                        </button>
                       </div>
                     </div>
                   );
@@ -400,7 +386,9 @@ export default function Dashboard() {
               <p className="strength-hint">
                 Add a portfolio to reach <strong>90%</strong> and get 3× more visibility.
               </p>
-              <button className="btn-full-outline" onClick={() => navigate('/freelancer/profile')}> Complete Profile
+              <button className="btn-full-outline"
+                onClick={() => navigate('/freelancer/profile')}>
+                Complete Profile
               </button>
             </div>
 
@@ -413,6 +401,48 @@ export default function Dashboard() {
           </aside>
         </div>
       </main>
+
+      {/* ── Details Modal ── */}
+      {selectedJob && (
+        <div className="job-modal-overlay"
+          onMouseDown={(e) => { if (e.target === e.currentTarget) setSelectedJob(null); }}>
+          <div className="job-modal">
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+              <h2>{selectedJob.title}</h2>
+              <button onClick={() => setSelectedJob(null)}
+                style={{ background:'none', border:'none', color:'#888',
+                  fontSize:'22px', cursor:'pointer', lineHeight:1 }}>×</button>
+            </div>
+            <p className="modal-company">{selectedJob.clientName || 'Client'}</p>
+            <div style={{ display:'flex', gap:'12px', fontSize:'13px', color:'#aaa', margin:'8px 0' }}>
+              <span>${selectedJob.budget}</span>
+              <span>·</span>
+              <span>{selectedJob.duration}</span>
+              <span>·</span>
+              <span>{selectedJob.experience || 'Any level'}</span>
+            </div>
+            <p style={{ fontSize:'14px', color:'#ccc', lineHeight:1.6 }}>
+              {selectedJob.description || 'No description provided.'}
+            </p>
+            <div className="modal-tags" style={{ margin:'12px 0' }}>
+              {(selectedJob.skills || []).map((skill) => (
+                <span key={skill}>{skill}</span>
+              ))}
+            </div>
+            <div style={{ display:'flex', gap:'8px', marginTop:'16px' }}>
+              <button className="close-modal" style={{ flex:1 }}
+                onClick={() => setSelectedJob(null)}>
+                Close
+              </button>
+              <button className="close-modal"
+                style={{ flex:1, background:'#fff', color:'#000' }}
+                onClick={() => { const j = selectedJob; setSelectedJob(null); handleApply(j); }}>
+                Apply Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
