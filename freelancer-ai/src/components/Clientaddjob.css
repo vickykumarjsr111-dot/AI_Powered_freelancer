@@ -1,0 +1,264 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
+
+.caj-shell {
+  display: flex; min-height: 100vh;
+  background: #000; color: #fff;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ── Sidebar ── */
+.caj-sidebar {
+  position: fixed; top: 0; left: 0;
+  height: 100vh; width: 220px;
+  background: #050505; border-right: 1px solid #1f1f1f;
+  display: flex; flex-direction: column; z-index: 100;
+}
+
+.caj-brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 20px 16px; border-bottom: 1px solid #1f1f1f;
+}
+.caj-brand-icon {
+  width: 28px; height: 28px; background: #fff; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.caj-brandname {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px; font-weight: 700; color: #fff;
+}
+.caj-brandname span { color: #9ca3af; }
+
+.caj-nav {
+  flex: 1; padding: 12px 8px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.caj-nav-btn {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 8px 12px;
+  border: none; border-radius: 8px; background: none;
+  cursor: pointer; font-family: 'Inter', sans-serif;
+  font-size: 13px; color: #9ca3af; text-align: left;
+  transition: background 0.15s, color 0.15s;
+}
+.caj-nav-btn:hover    { background: #0f0f0f; color: #fff; }
+.caj-nav-btn--active  { background: #1a1a1a; color: #fff; }
+.caj-nav-label { flex: 1; }
+
+.caj-profile {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; border-top: 1px solid #1f1f1f;
+}
+.caj-profile-av {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: #1f1f1f; border: 1px solid #2f2f2f;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; flex-shrink: 0; color: #fff;
+}
+.caj-profile-info { flex: 1; min-width: 0; }
+.caj-profile-name {
+  font-size: 12px; font-weight: 500; color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.caj-profile-role { font-size: 11px; color: #6b7280; }
+.caj-online-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #22c55e; flex-shrink: 0;
+}
+
+/* ── Main ── */
+.caj-main {
+  margin-left: 220px; flex: 1;
+  padding: 28px 28px 48px; min-height: 100vh;
+}
+
+.caj-header { margin-bottom: 24px; }
+.caj-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px; font-weight: 700; color: #fff;
+}
+.caj-sub { font-size: 13px; color: #9ca3af; margin-top: 4px; }
+
+/* Layout */
+.caj-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 16px;
+  align-items: start;
+}
+
+/* Form card */
+.caj-form-card {
+  background: #0a0a0a; border: 1px solid #1f1f1f;
+  border-radius: 12px; padding: 24px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+
+.caj-success {
+  padding: 10px 14px; border-radius: 8px;
+  background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2);
+  color: #22c55e; font-size: 13px; font-weight: 500;
+}
+
+.caj-field {
+  display: flex; flex-direction: column; gap: 7px;
+}
+.caj-field label {
+  font-size: 12px; font-weight: 500; color: #d1d5db;
+}
+.caj-required { color: #ef4444; }
+
+.caj-field input,
+.caj-field textarea,
+.caj-field select {
+  padding: 10px 12px;
+  background: #111; border: 1px solid #1f1f1f;
+  border-radius: 8px; color: #fff;
+  font-size: 13px; font-family: 'Inter', sans-serif;
+  outline: none; transition: border-color 0.15s;
+  width: 100%;
+}
+.caj-field input:focus,
+.caj-field textarea:focus,
+.caj-field select:focus { border-color: #2f2f2f; }
+.caj-field input::placeholder,
+.caj-field textarea::placeholder { color: #6b7280; }
+.caj-field textarea { resize: vertical; }
+.caj-field select { cursor: pointer; }
+.caj-field select option { background: #111; }
+
+.caj-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+
+/* Experience buttons */
+.caj-exp-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.caj-exp-btn {
+  padding: 6px 16px; border-radius: 20px;
+  border: 1px solid #1f1f1f; background: #111;
+  color: #9ca3af; font-size: 12px; font-weight: 500;
+  font-family: 'Inter', sans-serif; cursor: pointer;
+  transition: all 0.15s;
+}
+.caj-exp-btn:hover { border-color: #2f2f2f; color: #fff; }
+.caj-exp-btn--active { background: #fff; color: #000; border-color: #fff; }
+
+/* Skill input */
+.caj-skill-input-row { display: flex; gap: 8px; }
+.caj-skill-input-row input { flex: 1; }
+.caj-add-skill-btn {
+  padding: 10px 16px; border-radius: 8px;
+  border: none; background: #fff; color: #000;
+  font-size: 12px; font-weight: 600;
+  font-family: 'Inter', sans-serif; cursor: pointer;
+  transition: background 0.15s; white-space: nowrap;
+}
+.caj-add-skill-btn:hover:not(:disabled) { background: #e5e5e5; }
+.caj-add-skill-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.caj-suggestions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.caj-suggestion-btn {
+  padding: 3px 10px; border-radius: 20px;
+  border: 1px dashed #2a2a2a; background: transparent;
+  color: #6b7280; font-size: 11px;
+  font-family: 'Inter', sans-serif; cursor: pointer;
+  transition: all 0.15s;
+}
+.caj-suggestion-btn:hover { border-color: #fff; color: #fff; }
+
+.caj-selected-skills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.caj-skill-tag {
+  display: flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px;
+  background: #1a1a1a; border: 1px solid #2a2a2a;
+  font-size: 11px; color: #d1d5db;
+}
+.caj-skill-tag button {
+  background: none; border: none; color: #6b7280;
+  cursor: pointer; font-size: 14px; line-height: 1;
+  padding: 0; transition: color 0.15s;
+}
+.caj-skill-tag button:hover { color: #ef4444; }
+
+/* Submit button */
+.caj-submit-btn {
+  width: 100%; padding: 11px;
+  border: none; border-radius: 8px;
+  background: #fff; color: #000;
+  font-size: 13px; font-weight: 700;
+  font-family: 'Inter', sans-serif; cursor: pointer;
+  transition: background 0.15s; margin-top: 4px;
+}
+.caj-submit-btn:hover:not(:disabled) { background: #e5e5e5; }
+.caj-submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Right panel — posted jobs */
+.caj-jobs-panel {
+  background: #0a0a0a; border: 1px solid #1f1f1f;
+  border-radius: 12px; padding: 16px;
+  position: sticky; top: 28px;
+}
+
+.caj-panel-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px; font-weight: 600; color: #fff;
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 12px;
+}
+.caj-panel-count {
+  font-size: 10px; font-weight: 700;
+  padding: 2px 7px; border-radius: 20px;
+  background: rgba(34,197,94,0.1); color: #22c55e;
+}
+
+.caj-panel-empty {
+  padding: 24px; text-align: center;
+  color: #6b7280; font-size: 12px;
+  border: 1px dashed #1f1f1f; border-radius: 8px;
+}
+
+.caj-posted-list { display: flex; flex-direction: column; gap: 8px; }
+
+.caj-posted-card {
+  background: #111; border: 1px solid #1f1f1f;
+  border-radius: 8px; padding: 12px;
+  transition: border-color 0.15s;
+}
+.caj-posted-card:hover { border-color: #2f2f2f; }
+
+.caj-posted-top {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 8px; margin-bottom: 4px;
+}
+.caj-posted-title {
+  font-size: 12px; font-weight: 500; color: #fff;
+  line-height: 1.4; flex: 1;
+}
+.caj-posted-status {
+  font-size: 9px; font-weight: 700;
+  padding: 2px 7px; border-radius: 20px;
+  text-transform: uppercase; white-space: nowrap;
+}
+.caj-status--open   { background: rgba(34,197,94,0.1);  color: #22c55e; }
+.caj-status--closed { background: rgba(239,68,68,0.1);  color: #ef4444; }
+
+.caj-posted-budget { font-size: 11px; color: #6b7280; margin-bottom: 6px; }
+
+.caj-posted-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+.caj-posted-tag {
+  font-size: 10px; padding: 2px 7px;
+  background: #1a1a1a; border: 1px solid #2a2a2a;
+  border-radius: 20px; color: #9ca3af;
+}
+
+.caj-posted-date { font-size: 10px; color: #6b7280; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .caj-layout { grid-template-columns: 1fr; }
+  .caj-jobs-panel { position: static; }
+  .caj-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .caj-sidebar { display: none; }
+  .caj-main { margin-left: 0; padding: 16px; }
+}
