@@ -190,6 +190,7 @@ export default function Dashboard() {
       case 'proposals': navigate('/freelancer/proposals'); break;
       case 'settings':  navigate('/freelancer/profile');   break;
       case 'messages':  navigate('/freelancer/messages');  break;
+      case 'earnings':  navigate('/freelancer/earnings');  break;
       default: break;
     }
   };
