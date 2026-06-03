@@ -234,23 +234,29 @@ export default function Profile() {
 
             {photoPreview ? (
 
-              <img
-                src={photoPreview}
-                alt="Profile"
-                className="profile-avatar-img"
-              />
+  <img
+    src={photoPreview}
+    alt="Profile"
+    className="profile-avatar-img"
+  />
 
-            ) : (
+) : (
 
-              <span className="profile-avatar-text">
+  <div className="profile-avatar-fallback">
 
-                {profileData.name
-                  ?.charAt(0)
-                  ?.toUpperCase() || 'U'}
+    <span className="profile-avatar-text">
 
-              </span>
+      {profileData.name
+        ?.charAt(0)
+        ?.toUpperCase() || 'U'}
 
-            )}
+    </span>
+
+  </div>
+
+)}
+
+
 
             {/* PLUS BUTTON */}
 

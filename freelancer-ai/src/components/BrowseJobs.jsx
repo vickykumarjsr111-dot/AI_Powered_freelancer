@@ -78,7 +78,7 @@ export default function BrowseJobs() {
       case 'jobs':      navigate('/freelancer/jobs');      break;
       case 'proposals': navigate('/freelancer/proposals'); break;
       case 'messages':  navigate('/freelancer/messages');  break;
-      case 'settings':  navigate('/freelancer/profile');   break;
+      case 'settings':  navigate('/freelancer/settings');   break;
       default: break;
     }
   };
@@ -159,12 +159,17 @@ export default function BrowseJobs() {
                 </div>
               </div>
               <div className="bpopup-divider" />
+              <button
+  className="bpopup-item"
+  onClick={() => {
+    setProfileMenuOpen(false);
+    navigate('/freelancer/profile');
+  }}
+>
+  📝 Update Profile
+</button>
               <button className="bpopup-item"
-                onClick={() => { setProfileMenuOpen(false); navigate('/freelancer/profile'); }}>
-                ✏️ &nbsp;Update Profile
-              </button>
-              <button className="bpopup-item"
-                onClick={() => { setProfileMenuOpen(false); navigate('/freelancer/profile'); }}>
+                onClick={() => { setProfileMenuOpen(false); navigate('/freelancer/settings'); }}>
                 ⚙️ &nbsp;Settings
               </button>
               <div className="bpopup-divider" />
