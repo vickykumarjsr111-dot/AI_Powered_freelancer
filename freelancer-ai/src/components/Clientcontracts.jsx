@@ -224,6 +224,7 @@ export default function ClientContracts() {
             { id:'post-job',   label:'Post a Job' },
             { id:'messages',   label:'Messages'   },
             { id:'contracts',  label:'Contracts', badge: pendingProposals.length },
+            { id: 'payments',  label:'Payments'   },
             { id:'settings',   label:'Settings'   },
           ].map((item) => (
             <button key={item.id}

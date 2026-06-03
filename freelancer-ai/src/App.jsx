@@ -11,7 +11,9 @@ import FreelancerMessages from './components/FreelancerMessages';
 import Chat from './components/Chat';
 import FreelancerProposals from './components/Freelancerproposals';
 import ClientContracts from './components/Clientcontracts';
-import ClientAddJob    from './components/ClientAddJob';
+import ClientAddJob from './components/ClientAddJob';
+import ClientPayments from './components/Clientpayments';
+import FreelancerEarnings from './components/Freelancerearnings';
 
 export default function App() {
   const navigate = useNavigate();
@@ -19,63 +21,27 @@ export default function App() {
   return (
     <VideoBackground>
       <Routes>
-        <Route
-          path="/"
-          element={<Navbar onNavigateToLogin={() => navigate('/login')} />}
-        />
+        <Route path="/" element={<Navbar onNavigateToLogin={() => navigate('/login')} />} />
+        <Route path="/login" element={<Login onBackToHome={() => navigate('/')} />} />
 
-        <Route
-          path="/login"
-          element={<Login onBackToHome={() => navigate('/')} />}
-        />
+        {/* Freelancer routes */}
+        <Route path="/freelancer/dashboard" element={<Dashboard />} />
+        <Route path="/freelancer/profile"   element={<Profile />} />
+        <Route path="/freelancer/jobs"      element={<BrowseJobs />} />
+        <Route path="/freelancer/messages"  element={<FreelancerMessages />} />
+        <Route path="/freelancer/proposals" element={<FreelancerProposals />} />
+        <Route path="/freelancer/earnings"  element={<FreelancerEarnings />} />
 
-        <Route
-          path="/freelancer/dashboard"
-          element={<Dashboard />}
-        />
-
-        <Route
-          path="/freelancer/profile"
-          element={<Profile />}
-        />
-
-        <Route
-          path="/freelancer/jobs"
-          element={<BrowseJobs />}
-        />
-
-        <Route
-          path="/freelancer/messages"
-          element={<FreelancerMessages />}
-        />
-
-        <Route
-          path="/freelancer/proposals"
-          element={<FreelancerProposals />}
-        />
-
-        <Route
-          path="/client/dashboard"
-          element={<ClientDashboard />}
-        />
-
-        <Route
-          path="/client/messages"
-          element={<ClientMessages />}
-        />
-
-        <Route
-          path="/client/contracts"
-          element={<ClientContracts />}
-        />
-
-        <Route
-          path="/chat/:chatId"
-          element={<Chat />}
-        />
-
-        <Route path="/client/post-job"   element={<ClientAddJob />} />
-        <Route path="/client/contracts"  element={<ClientContracts />} />
+        {/* Client routes */}
+        <Route path="/client/dashboard" element={<ClientDashboard />} />
+        <Route path="/client/messages"  element={<ClientMessages />} />
+        <Route path="/client/contracts" element={<ClientContracts />} />
+        <Route path="/client/post-job"  element={<ClientAddJob />} />
+        <Route path="/client/payments"  element={<ClientPayments />} />
+        <Route path="/client/profile"   element={<Profile />} />
+        {/* Shared */}
+        <Route path="/chat/:chatId" element={<Chat />} />
+        
       </Routes>
     </VideoBackground>
   );

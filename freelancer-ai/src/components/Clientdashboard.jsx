@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import {
   doc, getDoc, collection, getDocs,
-  addDoc, query, where, serverTimestamp
+  addDoc, query, where, onSnapshot,
+  serverTimestamp, orderBy
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
@@ -20,10 +21,20 @@ export default function ClientDashboard() {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm]           = useState('');
   const [selectedSkill, setSelectedSkill]     = useState('All');
+
+  // ── Real stats from Firestore ──
+  const [activeContractsCount, setActiveContractsCount]   = useState(0);
+  const [pendingProposalsCount, setPendingProposalsCount] = useState(0);
+  const [totalSpent, setTotalSpent]                       = useState(0);
+
   const profileRef = useRef(null);
   const navigate   = useNavigate();
 
   useEffect(() => {
+    let unsubContracts  = null;
+    let unsubProposals  = null;
+    let unsubPayments   = null;
+
     const unsub = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) { navigate('/login'); return; }
       try {
@@ -31,16 +42,50 @@ export default function ClientDashboard() {
         if (snap.exists()) setUserData(snap.data());
         else { navigate('/login'); return; }
 
+        // Freelancers (one-time fetch — doesn't change often)
         const fsSnap = await getDocs(collection(db, 'freelancers'));
-        const list = fsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        setFreelancers(list);
+        setFreelancers(fsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+
+        // ── Live: active contracts ──
+        unsubContracts = onSnapshot(
+          query(collection(db, 'contracts'),
+            where('clientId', '==', currentUser.uid),
+            where('status',   '==', 'active')),
+          (s) => setActiveContractsCount(s.size)
+        );
+
+        // ── Live: pending proposals ──
+        unsubProposals = onSnapshot(
+          query(collection(db, 'proposals'),
+            where('clientId', '==', currentUser.uid),
+            where('status',   '==', 'pending')),
+          (s) => setPendingProposalsCount(s.size)
+        );
+
+        // ── Live: total spent (released payments) ──
+        unsubPayments = onSnapshot(
+          query(collection(db, 'payments'),
+            where('clientId', '==', currentUser.uid),
+            where('status',   '==', 'released')),
+          (s) => {
+            const sum = s.docs.reduce((acc, d) => acc + (d.data().amount || 0), 0);
+            setTotalSpent(sum);
+          }
+        );
+
       } catch (err) {
         console.error(err);
       } finally {
         setLoading(false);
       }
     });
-    return () => unsub();
+
+    return () => {
+      unsub();
+      if (unsubContracts) unsubContracts();
+      if (unsubProposals) unsubProposals();
+      if (unsubPayments)  unsubPayments();
+    };
   }, [navigate]);
 
   useEffect(() => {
@@ -58,12 +103,16 @@ export default function ClientDashboard() {
   };
 
   const handleNavigation = (id) => {
-  setActiveNav(id);
-    if (id === 'dashboard') navigate('/client/dashboard');
-    if (id === 'post-job')  navigate('/client/post-job');
-    if (id === 'messages')  navigate('/client/messages');
-    if (id === 'contracts') navigate('/client/contracts');
-    if (id === 'settings')  navigate('/freelancer/profile');
+    setActiveNav(id);
+    const routes = {
+      dashboard:  '/client/dashboard',
+      'post-job': '/client/post-job',
+      messages:   '/client/messages',
+      contracts:  '/client/contracts',
+      payments:   '/client/payments',
+      settings:   '/client/profile',
+    };
+    if (routes[id]) navigate(routes[id]);
   };
 
   const handleMessage = async (freelancer) => {
@@ -122,17 +171,22 @@ export default function ClientDashboard() {
   const initials  = getInitials(name);
   const firstName = name.split(' ')[0];
 
+  // Format total spent nicely
+  const spentLabel = totalSpent >= 1000
+    ? `$${(totalSpent / 1000).toFixed(1)}k`
+    : `$${totalSpent}`;
+
   const STATS = [
-    { label: 'Freelancers Available', value: freelancers.length.toString(), delta: null },
-    { label: 'Active Contracts',      value: '2',    delta: null     },
-    { label: 'Pending Proposals',     value: '5',    delta: '↑ +2'  },
-    { label: 'Total Spent',           value: '$12k', delta: '↑ +8%' },
+    { label: 'Freelancers Available', value: freelancers.length.toString(), delta: null    },
+    { label: 'Active Contracts',      value: activeContractsCount.toString(), delta: null  },
+    { label: 'Pending Proposals',     value: pendingProposalsCount.toString(), delta: null },
+    { label: 'Total Spent',           value: spentLabel,                       delta: null },
   ];
 
   return (
     <div className="cdash-shell">
 
-      {/* Sidebar */}
+      {/* ── Sidebar ── */}
       <aside className="cdash-sidebar">
         <div className="cdash-brand">
           <div className="cbrand-icon">
@@ -144,12 +198,13 @@ export default function ClientDashboard() {
 
         <nav className="cdash-nav">
           {[
-             { id:'dashboard', label:'Dashboard'  },
-             { id:'post-job',  label:'Post a Job' },
-             { id:'messages',  label:'Messages'   },
-             { id:'contracts', label:'Contracts'  },
-             { id:'settings',  label:'Settings'   },
-           ].map((item) => (
+            { id:'dashboard', label:'Dashboard'  },
+            { id:'post-job',  label:'Post a Job' },
+            { id:'messages',  label:'Messages'   },
+            { id:'contracts', label:'Contracts'  },
+            { id:'payments',  label:'Payments'   },
+            { id:'settings',  label:'Settings'   },
+          ].map((item) => (
             <button key={item.id}
               className={`cnav-btn ${activeNav === item.id ? 'cnav-btn--active' : ''}`}
               onClick={() => handleNavigation(item.id)}>
@@ -185,9 +240,10 @@ export default function ClientDashboard() {
               </div>
               <div className="cpopup-divider" />
               <button className="cpopup-item"
-                onClick={() => { setProfileMenuOpen(false); navigate('/freelancer/profile'); }}>
+                onClick={() => { setProfileMenuOpen(false); navigate('/client/profile'); }}>
                 ✏️ &nbsp;Update Profile
               </button>
+      
               <div className="cpopup-divider" />
               <button className="cpopup-item cpopup-item--danger"
                 onClick={() => { setProfileMenuOpen(false); handleLogout(); }}>
@@ -198,13 +254,13 @@ export default function ClientDashboard() {
         </div>
       </aside>
 
-      {/* Main */}
+      {/* ── Main ── */}
       <main className="cdash-main">
         <div className="cdash-header">
-          <div>
-            <h1 className="cdash-greeting">Welcome, {firstName} 👋</h1>
-            <p className="cdash-sub">Find and hire the best freelancers for your projects</p>
-          </div>
+         <div>
+          <h1 className="cdash-greeting">Welcome, {firstName} 👋</h1>
+          <p className="cdash-sub">Find and hire the best freelancers for your projects</p>
+         </div>
         </div>
 
         <div className="cstats-row">

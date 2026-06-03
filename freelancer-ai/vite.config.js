@@ -12,7 +12,7 @@ export default defineConfig({
     open: true,
     watch: {
       usePolling: true,
-      interval: 100,
+      interval: 1,
       ignored: ['**/node_modules/**', '**/.git/**'],
     },
   },
