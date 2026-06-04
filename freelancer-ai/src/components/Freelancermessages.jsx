@@ -53,6 +53,7 @@ export default function FreelancerMessages() {
       case 'jobs':      navigate('/freelancer/jobs');      break;
       case 'proposals': navigate('/freelancer/proposals'); break;
       case 'messages':  navigate('/freelancer/messages');  break;
+      case 'earnings':  navigate('/freelancer/earnings');  break;
       case 'settings':  navigate('/freelancer/settings');   break;
       default: break;
     }

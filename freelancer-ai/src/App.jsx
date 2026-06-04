@@ -14,6 +14,8 @@ import ClientContracts from './components/Clientcontracts';
 import ClientAddJob from './components/ClientAddJob';
 import ClientPayments from './components/Clientpayments';
 import FreelancerEarnings from './components/Freelancerearnings';
+import AIAssistant from './components/AIAssistant';
+import './components/AIAssistant.css';
 
 export default function App() {
   const navigate = useNavigate();
@@ -43,6 +45,7 @@ export default function App() {
         <Route path="/chat/:chatId" element={<Chat />} />
         
       </Routes>
+      <AIAssistant />
     </VideoBackground>
   );
 }

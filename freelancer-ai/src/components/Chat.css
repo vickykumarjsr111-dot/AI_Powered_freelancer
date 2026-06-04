@@ -110,10 +110,11 @@
   color: #000;
   border-bottom-right-radius: 3px;
 }
+
 .chat-bubble--theirs {
-  background: #0f0f0f;
-  border: 1px solid #1f1f1f;
-  color: #fff;
+  background: #1a1a2e;
+  border: 1px solid #2d2d4e;
+  color: #e2e8f0;
   border-bottom-left-radius: 3px;
 }
 
