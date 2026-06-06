@@ -108,7 +108,7 @@ export default function Home({ onNavigateToLogin }) {
           <div className="desktop-nav">
             <a href="#features">Features</a>
             <a href="#how-it-works">How It Works</a>
-            <a href="#pricing">Pricing</a>
+            
           </div>
 
           <div className="desktop-buttons">
@@ -136,9 +136,7 @@ export default function Home({ onNavigateToLogin }) {
             <a href="#how-it-works" onClick={() => setMenuOpen(false)}>
               How It Works
             </a>
-            <a href="#pricing" onClick={() => setMenuOpen(false)}>
-              Pricing
-            </a>
+            
             <button
               className="btn-secondary"
               onClick={() => {
@@ -161,7 +159,6 @@ export default function Home({ onNavigateToLogin }) {
         )}
       </header>
 
-      {/* HERO */}
       <section className="hero-section">
         <div className="hero-content container">
           <div className="hero-badge">
@@ -202,7 +199,6 @@ export default function Home({ onNavigateToLogin }) {
         </div>
       </section>
 
-      {/* FEATURES */}
       <section id="features" className="features-section">
         <div className="container">
           <SectionLabel text="What we offer" />
@@ -233,7 +229,6 @@ export default function Home({ onNavigateToLogin }) {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
       <section id="how-it-works" className="how-it-works-section">
         <div className="container">
           <SectionLabel text="Getting Started" />
@@ -256,7 +251,6 @@ export default function Home({ onNavigateToLogin }) {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="cta-section">
         <div className="container">
           <div className="cta-card">
@@ -272,7 +266,6 @@ export default function Home({ onNavigateToLogin }) {
         </div>
       </section>
 
-      {/* FOOTER */}
       <footer className="footer">
         <div className="footer-content container">
           <div className="footer-column">
@@ -290,7 +283,6 @@ export default function Home({ onNavigateToLogin }) {
               <h4>Platform</h4>
               <a href="#">Find Work</a>
               <a href="#">Hire Talent</a>
-              <a href="#">Pricing</a>
             </div>
 
             <div className="footer-column">

@@ -483,6 +483,17 @@ body,
     display: none;
   }
 
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .mobile-menu-btn {
+    margin-left: auto;
+  }
+
   .mobile-menu-btn {
     display: block;
     z-index: 2001;
