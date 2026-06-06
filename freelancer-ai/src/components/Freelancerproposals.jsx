@@ -8,7 +8,7 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useNavigate, useLocation } from 'react-router-dom';
-import './FreelancerProposals.css';
+import './Freelancerproposals.css';
 
 function getInitials(name = '') {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
