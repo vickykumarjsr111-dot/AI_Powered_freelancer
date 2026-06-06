@@ -8,7 +8,7 @@ import {
   orderBy, query, where               // ← added where
 } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
-import './BrowseJobs.css';
+import './Browsejobs.css';
 
 function getInitials(name = '') {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
