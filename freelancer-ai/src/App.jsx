@@ -1,21 +1,21 @@
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import VideoBackground from './components/VideoBackground';
+import VideoBackground from './components/Videobackground';
 import Navbar from './components/Navbar';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
-import BrowseJobs from './components/BrowseJobs';
-import ClientDashboard from './components/ClientDashboard';
-import ClientMessages from './components/ClientMessages';
-import FreelancerMessages from './components/FreelancerMessages';
+import BrowseJobs from './components/Browsejobs';
+import ClientDashboard from './components/Clientdashboard';
+import ClientMessages from './components/Clientmessages';
+import FreelancerMessages from './components/Freelancermessages';
 import Chat from './components/Chat';
 import FreelancerProposals from './components/Freelancerproposals';
 import ClientContracts from './components/Clientcontracts';
-import ClientAddJob from './components/ClientAddJob';
+import ClientAddJob from './components/Clientaddjob';
 import ClientPayments from './components/Clientpayments';
 import FreelancerEarnings from './components/Freelancerearnings';
-import AIAssistant from './components/AIAssistant';
-import './components/AIAssistant.css';
+import AIAssistant from './components/Aiassistant';
+import './components/Aiassistant.css';
 
 export default function App() {
   const navigate = useNavigate();
