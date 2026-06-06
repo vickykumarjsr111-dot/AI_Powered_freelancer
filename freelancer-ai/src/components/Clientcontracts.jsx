@@ -117,6 +117,7 @@ export default function ClientContracts() {
       'post-job': '/client/post-job',
       messages:   '/client/messages',
       contracts:  '/client/contracts',
+      payments:   '/client/payments',
       settings:   '/client/profile',
     };
     if (routes[id]) navigate(routes[id]);

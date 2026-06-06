@@ -93,6 +93,25 @@
 
 .cmsg-time { font-size:10px; color:#6b7280; white-space:nowrap; }
 
+.cmsg-delete-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.cmsg-delete-btn:hover {
+  color: #ef4444;
+}
+
 @media (max-width:640px) {
   .cmsg-sidebar { display:none; }
   .cmsg-main { margin-left:0; padding:16px; }

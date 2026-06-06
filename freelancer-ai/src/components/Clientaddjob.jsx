@@ -65,6 +65,7 @@ export default function ClientAddJob() {
       dashboard: '/client/dashboard',
       messages:  '/client/messages',
       contracts: '/client/contracts',
+      payments:  '/client/payments',
       settings:  '/freelancer/profile',
     };
     if (routes[id]) navigate(routes[id]);
@@ -155,6 +156,7 @@ export default function ClientAddJob() {
             { id:'post-job',  label:'Post a Job' },
             { id:'messages',  label:'Messages'   },
             { id:'contracts', label:'Contracts'  },
+            { id:'payments',  label:'Payments'   },
             { id:'settings',  label:'Settings'   },
           ].map((item) => (
             <button key={item.id}

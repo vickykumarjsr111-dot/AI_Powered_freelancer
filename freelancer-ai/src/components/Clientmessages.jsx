@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, deleteDoc, doc, getDocs } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
+import { Trash2 } from 'lucide-react';
 import './Clientmessages.css';
 
 function getInitials(name = '') {
@@ -17,26 +18,19 @@ export default function ClientMessages() {
 
   useEffect(() => {
     let unsubSnap = null;
-
     const unsub = onAuthStateChanged(auth, (user) => {
       if (!user) { navigate('/login'); return; }
-
       const q = query(
         collection(db, 'chats'),
         where('clientId', '==', user.uid),
         orderBy('lastAt', 'desc')
       );
-
       unsubSnap = onSnapshot(q, (snap) => {
         setChats(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
         setLoading(false);
       });
     });
-
-    return () => {
-      unsub();
-      if (unsubSnap) unsubSnap();
-    };
+    return () => { unsub(); if (unsubSnap) unsubSnap(); };
   }, [navigate]);
 
   const handleLogout = async () => { await signOut(auth); navigate('/'); };
@@ -52,6 +46,18 @@ export default function ClientMessages() {
       settings:   '/client/profile',
     };
     if (routes[id]) navigate(routes[id]);
+  };
+
+  const handleDeleteChat = async (e, chatId) => {
+    e.stopPropagation();
+    if (!window.confirm('Delete this conversation?')) return;
+    try {
+      const messagesSnap = await getDocs(collection(db, 'chats', chatId, 'messages'));
+      await Promise.all(messagesSnap.docs.map((d) => deleteDoc(d.ref)));
+      await deleteDoc(doc(db, 'chats', chatId));
+    } catch (err) {
+      console.error('Delete error:', err);
+    }
   };
 
   if (loading) {
@@ -88,7 +94,6 @@ export default function ClientMessages() {
               {item.label}
             </button>
           ))}
-
           <button className="cmsg-nav-btn" onClick={handleLogout}
             style={{ marginTop:'auto', color:'#ef4444' }}>
             Logout
@@ -124,6 +129,13 @@ export default function ClientMessages() {
                 <div className="cmsg-time">
                   {chat.lastAt?.toDate ? chat.lastAt.toDate().toLocaleDateString() : ''}
                 </div>
+                <button
+                  className="cmsg-delete-btn"
+                  onClick={(e) => handleDeleteChat(e, chat.id)}
+                  title="Delete conversation"
+                >
+                  <Trash2 size={15} />
+                </button>
               </div>
             ))}
           </div>
