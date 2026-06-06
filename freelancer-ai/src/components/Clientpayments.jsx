@@ -19,7 +19,7 @@ export default function ClientPayments() {
   const [loading,   setLoading]   = useState(true);
   const [activeNav, setActiveNav] = useState('payments');
   const [activeTab, setActiveTab] = useState('overview');
-  const [payModal,  setPayModal]  = useState(null);   // contract to pay
+  const [payModal,  setPayModal]  = useState(null);
   const [payAmount, setPayAmount] = useState('');
   const [paying,    setPaying]    = useState(false);
 
@@ -76,14 +76,12 @@ export default function ClientPayments() {
     if (routes[id]) navigate(routes[id]);
   };
 
-  // Release payment to freelancer
   const handleRelease = async () => {
     const amt = Number(payAmount);
     if (!amt || amt <= 0 || !payModal) return;
     setPaying(true);
     try {
-      // 1. Add payment record
-      const payRef = await addDoc(collection(db, 'payments'), {
+      await addDoc(collection(db, 'payments'), {
         clientId:       auth.currentUser.uid,
         clientName:     userData?.name || 'Client',
         freelancerId:   payModal.freelancerId,
@@ -95,7 +93,6 @@ export default function ClientPayments() {
         createdAt:      serverTimestamp(),
       });
 
-      // 2. Optionally mark contract completed if full amount paid
       const totalPaid = payments
         .filter(p => p.contractId === payModal.id && p.status === 'released')
         .reduce((s, p) => s + (p.amount || 0), 0) + amt;
@@ -122,12 +119,11 @@ export default function ClientPayments() {
   const initials = getInitials(name);
   const role     = userData?.role || 'client';
 
-  const totalSpent    = payments.filter(p => p.status === 'released').reduce((s, p) => s + (p.amount || 0), 0);
-  const pendingPayouts= payments.filter(p => p.status === 'pending').reduce((s, p) => s + (p.amount || 0), 0);
+  const totalSpent      = payments.filter(p => p.status === 'released').reduce((s, p) => s + (p.amount || 0), 0);
+  const pendingPayouts  = payments.filter(p => p.status === 'pending').reduce((s, p) => s + (p.amount || 0), 0);
   const activeContracts = contracts.filter(c => c.status === 'active').length;
   const contractBudget  = contracts.filter(c => c.status === 'active').reduce((s, c) => s + (Number(c.agreedAmount) || 0), 0);
 
-  // For the payment modal: how much is already paid for this contract?
   const paidForContract = (contractId) =>
     payments.filter(p => p.contractId === contractId && p.status === 'released')
       .reduce((s, p) => s + (p.amount || 0), 0);
@@ -189,14 +185,14 @@ export default function ClientPayments() {
         {/* Stats */}
         <div className="cp-stats">
           {[
-            { label: 'Total Spent',       value: `$${totalSpent.toLocaleString()}`,     color: '#ef4444' },
-            { label: 'Active Contracts',  value: activeContracts,                         color: '#3b82f6' },
-            { label: 'Committed Budget',  value: `$${contractBudget.toLocaleString()}`,  color: '#f59e0b' },
-            { label: 'Pending Releases',  value: `$${pendingPayouts.toLocaleString()}`,  color: '#a78bfa' },
+            { label: 'Total Spent',      value: `$${totalSpent.toLocaleString()}`    },
+            { label: 'Active Contracts', value: activeContracts                       },
+            { label: 'Committed Budget', value: `$${contractBudget.toLocaleString()}` },
+            { label: 'Pending Releases', value: `$${pendingPayouts.toLocaleString()}` },
           ].map((s) => (
             <div key={s.label} className="cp-stat-card">
               <p className="cp-stat-label">{s.label}</p>
-              <p className="cp-stat-value" style={{ color: s.color }}>{s.value}</p>
+              <p className="cp-stat-value">{s.value}</p>
             </div>
           ))}
         </div>
@@ -222,9 +218,9 @@ export default function ClientPayments() {
               ) : (
                 <div className="cp-contract-list">
                   {contracts.filter(c => c.status === 'active').map(c => {
-                    const paid    = paidForContract(c.id);
-                    const total   = Number(c.agreedAmount) || 0;
-                    const pct     = total ? Math.min((paid / total) * 100, 100) : 0;
+                    const paid      = paidForContract(c.id);
+                    const total     = Number(c.agreedAmount) || 0;
+                    const pct       = total ? Math.min((paid / total) * 100, 100) : 0;
                     const remaining = Math.max(total - paid, 0);
                     return (
                       <div key={c.id} className="cp-contract-card">
@@ -294,7 +290,7 @@ export default function ClientPayments() {
         {/* Release Funds Tab */}
         {activeTab === 'release funds' && (
           <div>
-            <p style={{ color:'#666', fontSize:'13px', marginBottom:'16px' }}>
+            <p style={{ color:'#6b7280', fontSize:'13px', marginBottom:'16px' }}>
               Select an active contract to release a payment to the freelancer.
             </p>
             {contracts.filter(c => c.status === 'active').length === 0 ? (
@@ -408,9 +404,9 @@ export default function ClientPayments() {
                 <span>Already Released</span>
                 <strong>${paidForContract(payModal.id).toLocaleString()}</strong>
               </div>
-              <div className="cp-modal-row" style={{ borderTop:'1px solid #2a2a2a', paddingTop:8, marginTop:4 }}>
+              <div className="cp-modal-row" style={{ borderTop:'1px solid #1f1f1f', paddingTop:8, marginTop:4 }}>
                 <span>Remaining</span>
-                <strong style={{ color:'#f59e0b' }}>${remainingForContract(payModal).toLocaleString()}</strong>
+                <strong style={{ color:'#22c55e' }}>${remainingForContract(payModal).toLocaleString()}</strong>
               </div>
             </div>
 
@@ -430,12 +426,7 @@ export default function ClientPayments() {
             <div className="cp-modal-actions">
               <button className="cp-modal-cancel" onClick={() => setPayModal(null)}>Cancel</button>
               <button className="cp-modal-submit"
-                disabled={
-                  paying ||
-                  !payAmount ||
-                  Number(payAmount) <= 0 ||
-                  Number(payAmount) > remainingForContract(payModal)
-                }
+                disabled={paying || !payAmount || Number(payAmount) <= 0 || Number(payAmount) > remainingForContract(payModal)}
                 onClick={handleRelease}>
                 {paying ? 'Processing...' : `Release $${payAmount || '0'}`}
               </button>
