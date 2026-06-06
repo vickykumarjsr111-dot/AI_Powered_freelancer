@@ -4,7 +4,7 @@ import { Menu } from 'lucide-react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import {
   collection, query, where, onSnapshot,
-  addDoc, setDoc, serverTimestamp, doc, getDoc, orderBy
+  addDoc, serverTimestamp, doc, getDoc, orderBy
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -26,6 +26,7 @@ function StatusBadge({ status }) {
 
 export default function FreelancerProposals() {
   const [userData, setUserData]       = useState(null);
+  const [uid, setUid]                 = useState(null);
   const [proposals, setProposals]     = useState([]);
   const [jobs, setJobs]               = useState([]);
   const [loading, setLoading]         = useState(true);
@@ -39,36 +40,51 @@ export default function FreelancerProposals() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // ── Auth ────────────────────────────────────────────────────────────────────
   useEffect(() => {
-    let unsubSnap = null;
-    let unsubJobs = null;
-
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) { navigate('/login'); return; }
       try {
         const snap = await getDoc(doc(db, 'users', user.uid));
         if (snap.exists()) setUserData(snap.data());
-
-        const q = query(collection(db, 'proposals'), where('freelancerId', '==', user.uid));
-        unsubSnap = onSnapshot(q, (snapshot) => {
-          setProposals(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
-          setLoading(false);
-        });
-
-        const jobsQ = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'));
-        unsubJobs = onSnapshot(jobsQ, (snapshot) => {
-          setJobs(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
-        });
+        setUid(user.uid);
       } catch (err) {
         console.error(err);
+      } finally {
         setLoading(false);
       }
     });
-
-    return () => { unsub(); if (unsubSnap) unsubSnap(); if (unsubJobs) unsubJobs(); };
+    return () => unsub();
   }, [navigate]);
 
-  // ── Auto-open modal when arriving via Apply Now ──
+  // ── Proposals listener — ordered, depends on uid not userData ───────────────
+  useEffect(() => {
+    if (!uid) return;
+    const q = query(
+      collection(db, 'proposals'),
+      where('freelancerId', '==', uid),
+      orderBy('createdAt', 'desc')        // fix 2: add orderBy
+    );
+    const unsub = onSnapshot(q, (snapshot) => {
+      setProposals(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+    });
+    return () => unsub();
+  }, [uid]);
+
+  // ── Jobs listener — only open jobs ─────────────────────────────────────────
+  useEffect(() => {
+    const q = query(
+      collection(db, 'jobs'),
+      where('open', '==', true),          // fix 1: filter closed jobs
+      orderBy('createdAt', 'desc')
+    );
+    const unsub = onSnapshot(q, (snapshot) => {
+      setJobs(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+    });
+    return () => unsub();
+  }, []);
+
+  // ── Auto-open modal when arriving via Apply Now ─────────────────────────────
   useEffect(() => {
     if (!location.state?.applyJob) return;
     const raw = location.state.applyJob;
@@ -123,6 +139,8 @@ export default function FreelancerProposals() {
         jobId:          selectedJob.id,
         jobTitle:       selectedJob.title,
         clientId:       selectedJob.clientId || null,
+        // fix 3: save both clientName and company so dashboard activity reads correctly
+        clientName:     selectedJob.clientName || selectedJob.company || 'Client',
         company:        selectedJob.clientName || selectedJob.company || 'Client',
         bidAmount:      Number(form.bidAmount),
         coverLetter:    form.coverLetter.trim(),
