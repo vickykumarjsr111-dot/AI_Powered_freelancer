@@ -3,8 +3,8 @@ import { createPortal } from "react-dom";
 import { Menu, X } from "lucide-react";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import {
-  doc, getDoc, collection, onSnapshot,
-  orderBy, query, where,
+  doc, getDoc, updateDoc, collection, onSnapshot,
+  orderBy, query, where, increment,
 } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { useNavigate } from "react-router-dom";
@@ -96,6 +96,7 @@ function calcEarnedThisMonth(payments) {
 
 export default function Dashboard() {
   const [userData, setUserData]         = useState(null);
+  const [uid, setUid]                   = useState(null);
   const [freelancerData, setFreelancerData] = useState(null);
   const [payments, setPayments]         = useState([]);
   const [loading, setLoading]           = useState(true);
@@ -114,21 +115,28 @@ export default function Dashboard() {
   const profileRef = useRef(null);
   const navigate   = useNavigate();
 
-  // ── Auth + user data ────────────────────────────────────────────────────────
+  // ── Auth: sets uid ONCE → all other listeners depend on uid, not userData ───
   useEffect(() => {
+    let unsubUser     = null;
     let unsubPayments = null;
+
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) { navigate("/login"); return; }
       try {
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (snap.exists()) {
-          setUserData({ uid: user.uid, ...snap.data() });
-        } else {
-          navigate("/login");
-          return;
-        }
+        // Live listener on users doc — keeps profileViews and name in sync
+        // without causing proposals/contracts/messages to re-subscribe
+        unsubUser = onSnapshot(doc(db, "users", user.uid), (liveSnap) => {
+          if (liveSnap.exists()) {
+            setUserData({ uid: user.uid, ...liveSnap.data() });
+          } else {
+            navigate("/login");
+          }
+        });
 
-        // Also load freelancer profile for profile strength
+        // uid is set ONCE — this is what proposals/contracts/messages depend on
+        setUid(user.uid);
+
+        // Freelancer profile for profile strength (one-time read is fine)
         const fSnap = await getDoc(doc(db, "freelancers", user.uid));
         if (fSnap.exists()) setFreelancerData(fSnap.data());
 
@@ -147,7 +155,12 @@ export default function Dashboard() {
         setLoading(false);
       }
     });
-    return () => { unsub(); if (unsubPayments) unsubPayments(); };
+
+    return () => {
+      unsub();
+      if (unsubUser)     unsubUser();
+      if (unsubPayments) unsubPayments();
+    };
   }, [navigate]);
 
   // ── Jobs ────────────────────────────────────────────────────────────────────
@@ -158,42 +171,42 @@ export default function Dashboard() {
 
   // ── Proposals ───────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!userData?.uid) return;
+    if (!uid) return;
     const q = query(
       collection(db, "proposals"),
-      where("freelancerId", "==", userData.uid),
+      where("freelancerId", "==", uid),
       orderBy("createdAt", "desc")
     );
     return onSnapshot(q, (snap) => {
       setProposals(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
-  }, [userData]);
+  }, [uid]);
 
   // ── Contracts ───────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!userData?.uid) return;
+    if (!uid) return;
     const q = query(
       collection(db, "contracts"),
-      where("freelancerId", "==", userData.uid),
+      where("freelancerId", "==", uid),
       orderBy("createdAt", "desc")
     );
     return onSnapshot(q, (snap) => {
       setContracts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
-  }, [userData]);
+  }, [uid]);
 
   // ── Messages ────────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!userData?.uid) return;
+    if (!uid) return;
     const q = query(
       collection(db, "chats"),
-      where("freelancerId", "==", userData.uid),
+      where("freelancerId", "==", uid),
       orderBy("lastAt", "desc")
     );
     return onSnapshot(q, (snap) => {
       setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
-  }, [userData]);
+  }, [uid]);
 
   // ── Activity feed ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -355,7 +368,7 @@ export default function Dashboard() {
     : "Your profile is complete! 🎉";
 
   const STATS = [
-    { label: "Profile Views",     value: "284",                       delta: "↑ +18%" },
+    { label: "Profile Views",     value: String(userData?.profileViews || 0), delta: userData?.profileViews > 0 ? "↑ all time" : null },
     { label: "Proposals Sent",    value: String(proposals.length),    delta: proposals.length > 0 ? `↑ +${proposals.length}` : null },
     { label: "Active Contracts",  value: String(contracts.length),    delta: null },
     { label: "Earned This Month", value: earnedThisMonth,             delta: earnedThisMonth !== "$0" ? "↑ this month" : null },
