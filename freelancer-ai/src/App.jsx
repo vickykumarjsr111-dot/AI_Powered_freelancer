@@ -4,7 +4,7 @@ import Navbar from './components/Navbar';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
-import BrowseJobs from './components/Browsejobs';
+import BrowseJobs from './components/BrowseJobs';
 import ClientDashboard from './components/Clientdashboard';
 import ClientMessages from './components/Clientmessages';
 import FreelancerMessages from './components/Freelancermessages';
