@@ -236,6 +236,11 @@
   border: 1px solid #1f1f1f;
   border-radius: 10px;
   padding: 14px 16px;
+  transition: border-color 0.2s;
+}
+
+.stat-card:hover {
+  border-color: #2f2f2f;
 }
 
 .stat-label {
@@ -472,6 +477,8 @@
 
 .btn-apply:hover {
   background: transparent;
+  color: #fff;
+  border: 1px solid #2a2a2a;
 }
 
 .btn-details {
@@ -542,6 +549,7 @@
   margin-top: 2px;
 }
 
+/* ── Profile Strength ──────────────────────────────────────────────────────── */
 .strength-row {
   display: flex;
   align-items: center;
@@ -557,18 +565,37 @@
   overflow: hidden;
 }
 
+/* Base fill — color changes via score-tier classes below */
 .strength-fill {
   height: 100%;
-  background: #fff;
   border-radius: 10px;
-  transition: width 0.8s ease;
+  transition: width 0.8s ease, background 0.4s ease;
+  background: #ef4444; /* default: low */
 }
+
+/*
+  Apply these classes to .strength-fill from JS:
+    score < 40  → (no extra class) → red
+    score < 70  → .strength-fill--mid → amber
+    score >= 70 → .strength-fill--high → green
+    score === 100 → .strength-fill--full → bright white-green
+*/
+.strength-fill--mid  { background: #f59e0b; }
+.strength-fill--high { background: #22c55e; }
+.strength-fill--full { background: linear-gradient(90deg, #22c55e, #86efac); }
 
 .strength-pct {
   font-size: 11px;
   font-weight: 600;
   color: #fff;
+  min-width: 28px;
+  text-align: right;
 }
+
+/* Color the percentage text to match the bar tier */
+.strength-pct--mid  { color: #f59e0b; }
+.strength-pct--high { color: #22c55e; }
+.strength-pct--full { color: #86efac; }
 
 .strength-hint {
   font-size: 11px;
@@ -579,6 +606,11 @@
 
 .strength-hint strong {
   color: #d1d5db;
+}
+
+/* Earned this month — green tint when non-zero */
+.stat-card--earned .stat-value {
+  color: #22c55e;
 }
 
 .btn-full-outline {
@@ -626,6 +658,69 @@
   color: #d1d5db;
 }
 
+/* ── Job modal ─────────────────────────────────────────────────────────────── */
+.job-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.job-modal {
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 20px;
+  width: 100%;
+  max-width: 480px;
+  animation: modalIn 0.18s ease;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1);    }
+}
+
+.modal-company {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.modal-tags span {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 8px;
+  background: #111;
+  border: 1px solid #1f1f1f;
+  border-radius: 20px;
+  color: #9ca3af;
+  margin: 2px 3px 2px 0;
+}
+
+.close-modal {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  border: 1px solid #2a2a2a;
+  background: transparent;
+  color: #d1d5db;
+  transition: all 0.15s;
+}
+
+.close-modal:hover {
+  border-color: #fff;
+  color: #fff;
+}
+
+/* ── Profile popup ─────────────────────────────────────────────────────────── */
 .profile-popup {
   position: absolute;
   bottom: calc(100% + 8px);
@@ -719,9 +814,8 @@
   color: #ef4444;
 }
 
-
+/* ── Mobile ────────────────────────────────────────────────────────────────── */
 .mobile-menu-btn { display: none; }
-
 
 .dash-overlay {
   display: none;
@@ -734,7 +828,6 @@
 .dash-overlay--active {
   display: block;
 }
-
 
 @media (max-width: 900px) {
   .content-grid {
@@ -752,7 +845,7 @@
   .dash-sidebar {
     display: flex;
     position: fixed;
-    left: -260px;  
+    left: -260px;
     top: 0;
     width: 240px;
     height: 100vh;
@@ -774,6 +867,10 @@
   .dash-shell .stats-row {
     grid-template-columns: 1fr 1fr !important;
     gap: 12px;
+  }
+
+  .stat-value {
+    font-size: 20px;
   }
 
   .dash-header {
@@ -815,6 +912,7 @@
     margin-left: 0;
     width: 100%;
   }
+
   .mobile-menu-btn {
     display: flex;
     align-items: center;
@@ -826,8 +924,6 @@
     border-radius: 10px;
     color: white;
     cursor: pointer;
-
-   
     position: fixed;
     top: 16px;
     left: auto;
@@ -835,10 +931,13 @@
     z-index: 2001;
   }
 
- 
   .mobile-menu-btn--open {
     opacity: 0;
     pointer-events: none;
     z-index: 1;
+  }
+
+  .job-modal {
+    padding: 16px;
   }
 }

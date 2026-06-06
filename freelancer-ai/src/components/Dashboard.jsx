@@ -41,8 +41,63 @@ function formatTimeAgo(timestamp) {
   return days === 1 ? "Yesterday" : `${days}d ago`;
 }
 
+// ── Profile strength ──────────────────────────────────────────────────────────
+// userData   = users/{uid}      → name, profilePhoto
+// freelancer = freelancers/{uid}→ bio, skills, hourlyRate, portfolioLink, location
+const PROFILE_CHECKS = [
+  { key: "name",          label: "Full name",      weight: 15, src: "user"       },
+  { key: "bio",           label: "Bio",             weight: 20, src: "freelancer" },
+  { key: "skills",        label: "Skills",          weight: 20, src: "freelancer", isArray: true },
+  { key: "portfolioLink", label: "Portfolio link",  weight: 20, src: "freelancer" },
+  { key: "hourlyRate",    label: "Hourly rate",     weight: 10, src: "freelancer" },
+  { key: "location",      label: "Location",        weight: 10, src: "freelancer" },
+  { key: "profilePhoto",  label: "Profile photo",   weight: 5,  src: "user"       },
+];
+
+function calcProfileStrength(userData, freelancerData) {
+  if (!userData) return { score: 0, missing: [] };
+  let score = 0;
+  const missing = [];
+  for (const check of PROFILE_CHECKS) {
+    const source = check.src === "freelancer" ? freelancerData : userData;
+    const val    = source?.[check.key];
+    const filled = check.isArray
+      ? Array.isArray(val) && val.length > 0
+      : !!val && String(val).trim() !== "";
+    if (filled) {
+      score += check.weight;
+    } else {
+      missing.push(check.label);
+    }
+  }
+  return { score, missing };
+}
+
+// ── Earned this month ─────────────────────────────────────────────────────────
+// Source of truth: payments collection, status === "released"
+function calcEarnedThisMonth(payments) {
+  const now   = new Date();
+  const year  = now.getFullYear();
+  const month = now.getMonth();
+
+  let total = 0;
+  for (const p of payments) {
+    if (p.status !== "released") continue;
+    const ts = p.createdAt?.toDate ? p.createdAt.toDate() : p.createdAt ? new Date(p.createdAt) : null;
+    if (!ts) continue;
+    if (ts.getFullYear() !== year || ts.getMonth() !== month) continue;
+    const amt = parseFloat(p.amount || 0);
+    if (!isNaN(amt)) total += amt;
+  }
+
+  if (total >= 1000) return `$${(total / 1000).toFixed(1)}k`;
+  return total > 0 ? `$${total.toLocaleString()}` : "$0";
+}
+
 export default function Dashboard() {
   const [userData, setUserData]         = useState(null);
+  const [freelancerData, setFreelancerData] = useState(null);
+  const [payments, setPayments]         = useState([]);
   const [loading, setLoading]           = useState(true);
   const [activeNav, setActiveNav]       = useState("dashboard");
   const [saved, setSaved]               = useState(new Set());
@@ -59,30 +114,49 @@ export default function Dashboard() {
   const profileRef = useRef(null);
   const navigate   = useNavigate();
 
-  
+  // ── Auth + user data ────────────────────────────────────────────────────────
   useEffect(() => {
+    let unsubPayments = null;
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) { navigate("/login"); return; }
       try {
         const snap = await getDoc(doc(db, "users", user.uid));
-        if (snap.exists()) setUserData({ uid: user.uid, ...snap.data() });
-        else navigate("/login");
+        if (snap.exists()) {
+          setUserData({ uid: user.uid, ...snap.data() });
+        } else {
+          navigate("/login");
+          return;
+        }
+
+        // Also load freelancer profile for profile strength
+        const fSnap = await getDoc(doc(db, "freelancers", user.uid));
+        if (fSnap.exists()) setFreelancerData(fSnap.data());
+
+        // Live payments listener for "Earned This Month"
+        const paymentsQ = query(
+          collection(db, "payments"),
+          where("freelancerId", "==", user.uid),
+          orderBy("createdAt", "desc")
+        );
+        unsubPayments = onSnapshot(paymentsQ, (snap) => {
+          setPayments(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        });
       } catch (err) {
         console.error(err);
       } finally {
         setLoading(false);
       }
     });
-    return () => unsub();
+    return () => { unsub(); if (unsubPayments) unsubPayments(); };
   }, [navigate]);
 
-  
+  // ── Jobs ────────────────────────────────────────────────────────────────────
   useEffect(() => {
     const q = query(collection(db, "jobs"), where("open", "==", true), orderBy("createdAt", "desc"));
     return onSnapshot(q, (snap) => setJobs(snap.docs.map((d) => ({ id: d.id, ...d.data() }))));
   }, []);
 
-  
+  // ── Proposals ───────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!userData?.uid) return;
     const q = query(
@@ -95,7 +169,7 @@ export default function Dashboard() {
     });
   }, [userData]);
 
-  
+  // ── Contracts ───────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!userData?.uid) return;
     const q = query(
@@ -108,7 +182,7 @@ export default function Dashboard() {
     });
   }, [userData]);
 
-  
+  // ── Messages ────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!userData?.uid) return;
     const q = query(
@@ -121,7 +195,7 @@ export default function Dashboard() {
     });
   }, [userData]);
 
-  
+  // ── Activity feed ───────────────────────────────────────────────────────────
   useEffect(() => {
     const items = [];
 
@@ -154,7 +228,6 @@ export default function Dashboard() {
       }
     });
 
-    
     items.sort((a, b) => {
       const aTime = a.timestamp?.toDate ? a.timestamp.toDate().getTime() : a.timestamp || 0;
       const bTime = b.timestamp?.toDate ? b.timestamp.toDate().getTime() : b.timestamp || 0;
@@ -164,7 +237,7 @@ export default function Dashboard() {
     setActivity(items.slice(0, 8));
   }, [proposals, contracts, messages]);
 
-  
+  // ── Groq AI market insight ──────────────────────────────────────────────────
   useEffect(() => {
     if (jobs.length === 0) return;
     const fetchInsight = async () => {
@@ -216,7 +289,7 @@ export default function Dashboard() {
     fetchInsight();
   }, [jobs]);
 
-  
+  // ── Click-outside for profile menu ─────────────────────────────────────────
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target))
@@ -266,11 +339,26 @@ export default function Dashboard() {
   const initials  = getInitials(name);
   const firstName = name.split(" ")[0];
 
+  // ── Computed values ─────────────────────────────────────────────────────────
+  const { score: profileScore, missing: profileMissing } = calcProfileStrength(userData, freelancerData);
+  const earnedThisMonth = calcEarnedThisMonth(payments);
+
+  // Next missing field hint (pick the highest-weight one not yet filled)
+  // Strength bar colour tier
+  const strengthTier =
+    profileScore === 100 ? "full" :
+    profileScore >= 70   ? "high" :
+    profileScore >= 40   ? "mid"  : "";
+
+  const nextHint = profileMissing.length > 0
+    ? `Add your ${profileMissing[0].toLowerCase()} to boost visibility.`
+    : "Your profile is complete! 🎉";
+
   const STATS = [
-    { label: "Profile Views",      value: "284",                           delta: "↑ +18%" },
-    { label: "Proposals Sent",     value: String(proposals.length),        delta: proposals.length > 0 ? `↑ +${proposals.length}` : null },
-    { label: "Active Contracts",   value: String(contracts.length),        delta: null },
-    { label: "Earned This Month",  value: "$8.3k",                         delta: "↑ +22%" },
+    { label: "Profile Views",     value: "284",                       delta: "↑ +18%" },
+    { label: "Proposals Sent",    value: String(proposals.length),    delta: proposals.length > 0 ? `↑ +${proposals.length}` : null },
+    { label: "Active Contracts",  value: String(contracts.length),    delta: null },
+    { label: "Earned This Month", value: earnedThisMonth,             delta: earnedThisMonth !== "$0" ? "↑ this month" : null },
   ];
 
   return (
@@ -370,7 +458,7 @@ export default function Dashboard() {
 
         <div className="stats-row">
           {STATS.map((s) => (
-            <div key={s.label} className="stat-card">
+            <div key={s.label} className={`stat-card${s.label === "Earned This Month" && earnedThisMonth !== "$0" ? " stat-card--earned" : ""}`}>
               <p className="stat-label">{s.label}</p>
               <p className="stat-value">{s.value}</p>
               {s.delta && <span className="stat-delta">{s.delta}</span>}
@@ -472,22 +560,23 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* ── Profile strength ── */}
+            {/* ── Profile strength (auto-calculated) ── */}
             <div className="panel-card">
               <h2 className="section-title">Profile strength</h2>
               <div className="strength-row">
                 <div className="strength-bar">
-                  <div className="strength-fill" style={{ width:"72%" }} />
+                  <div className={`strength-fill${strengthTier ? ` strength-fill--${strengthTier}` : ""}`} style={{ width: `${profileScore}%` }} />
                 </div>
-                <span className="strength-pct">72%</span>
+                <span className={`strength-pct${strengthTier ? ` strength-pct--${strengthTier}` : ""}`}>{profileScore}%</span>
               </div>
-              <p className="strength-hint">
-                Add a portfolio to reach <strong>90%</strong> and get 3× more visibility.
-              </p>
-              <button className="btn-full-outline"
-                onClick={() => navigate("/freelancer/profile")}>
-                Complete Profile
-              </button>
+              <p className="strength-hint">{nextHint}</p>
+              {profileScore < 100 && (
+                <button
+                  className="btn-full-outline"
+                  onClick={() => navigate("/freelancer/profile")}>
+                  Complete Profile
+                </button>
+              )}
             </div>
 
             {/* ── Live Groq AI Insight ── */}
