@@ -4,7 +4,7 @@ import { Menu } from 'lucide-react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import {
   collection, query, where, onSnapshot,
-  addDoc, serverTimestamp, doc, getDoc, orderBy
+  addDoc, serverTimestamp, doc, getDoc, orderBy, deleteDoc
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -25,22 +25,22 @@ function StatusBadge({ status }) {
 }
 
 export default function FreelancerProposals() {
-  const [userData, setUserData]       = useState(null);
-  const [uid, setUid]                 = useState(null);
-  const [proposals, setProposals]     = useState([]);
-  const [jobs, setJobs]               = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [activeNav, setActiveNav]     = useState('proposals');
-  const [showModal, setShowModal]     = useState(false);
-  const [selectedJob, setSelectedJob] = useState(null);
+  const [userData, setUserData]             = useState(null);
+  const [uid, setUid]                       = useState(null);
+  const [proposals, setProposals]           = useState([]);
+  const [jobs, setJobs]                     = useState([]);
+  const [loading, setLoading]               = useState(true);
+  const [activeNav, setActiveNav]           = useState('proposals');
+  const [showModal, setShowModal]           = useState(false);
+  const [selectedJob, setSelectedJob]       = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [form, setForm]               = useState({ coverLetter: '', bidAmount: '' });
-  const [submitting, setSubmitting]   = useState(false);
+  const [form, setForm]                     = useState({ coverLetter: '', bidAmount: '' });
+  const [submitting, setSubmitting]         = useState(false);
+  const [deleting, setDeleting]             = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ── Auth ────────────────────────────────────────────────────────────────────
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) { navigate('/login'); return; }
@@ -57,13 +57,12 @@ export default function FreelancerProposals() {
     return () => unsub();
   }, [navigate]);
 
-  // ── Proposals listener — ordered, depends on uid not userData ───────────────
   useEffect(() => {
     if (!uid) return;
     const q = query(
       collection(db, 'proposals'),
       where('freelancerId', '==', uid),
-      orderBy('createdAt', 'desc')        // fix 2: add orderBy
+      orderBy('createdAt', 'desc')
     );
     const unsub = onSnapshot(q, (snapshot) => {
       setProposals(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
@@ -71,11 +70,10 @@ export default function FreelancerProposals() {
     return () => unsub();
   }, [uid]);
 
-  // ── Jobs listener — only open jobs ─────────────────────────────────────────
   useEffect(() => {
     const q = query(
       collection(db, 'jobs'),
-      where('open', '==', true),          // fix 1: filter closed jobs
+      where('open', '==', true),
       orderBy('createdAt', 'desc')
     );
     const unsub = onSnapshot(q, (snapshot) => {
@@ -84,7 +82,6 @@ export default function FreelancerProposals() {
     return () => unsub();
   }, []);
 
-  // ── Auto-open modal when arriving via Apply Now ─────────────────────────────
   useEffect(() => {
     if (!location.state?.applyJob) return;
     const raw = location.state.applyJob;
@@ -139,7 +136,6 @@ export default function FreelancerProposals() {
         jobId:          selectedJob.id,
         jobTitle:       selectedJob.title,
         clientId:       selectedJob.clientId || null,
-        // fix 3: save both clientName and company so dashboard activity reads correctly
         clientName:     selectedJob.clientName || selectedJob.company || 'Client',
         company:        selectedJob.clientName || selectedJob.company || 'Client',
         bidAmount:      Number(form.bidAmount),
@@ -152,6 +148,18 @@ export default function FreelancerProposals() {
       console.error(err);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (proposalId) => {
+    if (!window.confirm('Delete this proposal? This cannot be undone.')) return;
+    setDeleting(proposalId);
+    try {
+      await deleteDoc(doc(db, 'proposals', proposalId));
+    } catch (err) {
+      console.error('Delete error:', err);
+    } finally {
+      setDeleting(null);
     }
   };
 
@@ -291,7 +299,32 @@ export default function FreelancerProposals() {
                           <p className="fp-proposal-title">{p.jobTitle}</p>
                           <p className="fp-proposal-company">{p.company}</p>
                         </div>
-                        <StatusBadge status={p.status} />
+                        <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                          <StatusBadge status={p.status} />
+                          {/* Delete button — only for pending proposals */}
+                          {p.status === 'pending' && (
+                            <button
+                              onClick={() => handleDelete(p.id)}
+                              disabled={deleting === p.id}
+                              style={{
+                                background: 'none', border: '1px solid #2a2a2a',
+                                color: '#6b7280', cursor: 'pointer',
+                                fontSize: '11px', padding: '3px 8px',
+                                borderRadius: '6px', transition: 'all 0.15s',
+                                fontFamily: 'Inter, sans-serif',
+                              }}
+                              onMouseEnter={e => {
+                                e.target.style.borderColor = '#ef4444';
+                                e.target.style.color = '#ef4444';
+                              }}
+                              onMouseLeave={e => {
+                                e.target.style.borderColor = '#2a2a2a';
+                                e.target.style.color = '#6b7280';
+                              }}>
+                              {deleting === p.id ? '...' : 'Delete'}
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <p className="fp-proposal-letter">{p.coverLetter}</p>
                       <div className="fp-proposal-meta">

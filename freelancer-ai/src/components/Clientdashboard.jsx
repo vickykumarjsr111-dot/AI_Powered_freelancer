@@ -3,7 +3,7 @@ import { signOut, onAuthStateChanged } from 'firebase/auth';
 import {
   doc, getDoc, collection, getDocs,
   addDoc, query, where, onSnapshot,
-  serverTimestamp, orderBy
+  serverTimestamp
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
@@ -21,8 +21,8 @@ export default function ClientDashboard() {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm]           = useState('');
   const [selectedSkill, setSelectedSkill]     = useState('All');
+  const [detailFreelancer, setDetailFreelancer] = useState(null);
 
-  // ── Real stats from Firestore ──
   const [activeContractsCount, setActiveContractsCount]   = useState(0);
   const [pendingProposalsCount, setPendingProposalsCount] = useState(0);
   const [totalSpent, setTotalSpent]                       = useState(0);
@@ -31,9 +31,9 @@ export default function ClientDashboard() {
   const navigate   = useNavigate();
 
   useEffect(() => {
-    let unsubContracts  = null;
-    let unsubProposals  = null;
-    let unsubPayments   = null;
+    let unsubContracts = null;
+    let unsubProposals = null;
+    let unsubPayments  = null;
 
     const unsub = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) { navigate('/login'); return; }
@@ -51,14 +51,12 @@ export default function ClientDashboard() {
             where('status',   '==', 'active')),
           (s) => setActiveContractsCount(s.size)
         );
-
         unsubProposals = onSnapshot(
           query(collection(db, 'proposals'),
             where('clientId', '==', currentUser.uid),
             where('status',   '==', 'pending')),
           (s) => setPendingProposalsCount(s.size)
         );
-
         unsubPayments = onSnapshot(
           query(collection(db, 'payments'),
             where('clientId', '==', currentUser.uid),
@@ -68,7 +66,6 @@ export default function ClientDashboard() {
             setTotalSpent(sum);
           }
         );
-
       } catch (err) {
         console.error(err);
       } finally {
@@ -93,10 +90,7 @@ export default function ClientDashboard() {
     return () => document.removeEventListener('mousedown', handle);
   }, []);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate('/');
-  };
+  const handleLogout = async () => { await signOut(auth); navigate('/'); };
 
   const handleNavigation = (id) => {
     setActiveNav(id);
@@ -172,21 +166,19 @@ export default function ClientDashboard() {
     : `$${totalSpent}`;
 
   const STATS = [
-    { label: 'Freelancers Available', value: freelancers.length.toString(), delta: null    },
-    { label: 'Active Contracts',      value: activeContractsCount.toString(), delta: null  },
-    { label: 'Pending Proposals',     value: pendingProposalsCount.toString(), delta: null },
-    { label: 'Total Spent',           value: spentLabel,                       delta: null },
+    { label: 'Freelancers Available', value: freelancers.length.toString() },
+    { label: 'Active Contracts',      value: activeContractsCount.toString() },
+    { label: 'Pending Proposals',     value: pendingProposalsCount.toString() },
+    { label: 'Total Spent',           value: spentLabel },
   ];
 
   return (
     <div className="cdash-shell">
 
-      {/* ── Sidebar ── */}
       <aside className="cdash-sidebar">
         <div className="cdash-brand">
           <div className="cbrand-icon">
-            <img src="/image.png" alt="Logo"
-              style={{ width:20, height:20, objectFit:'contain' }} />
+            <img src="/image.png" alt="Logo" style={{ width:20, height:20, objectFit:'contain' }} />
           </div>
           <span className="cdash-brandname">Hustlance<span>AI</span></span>
         </div>
@@ -206,15 +198,12 @@ export default function ClientDashboard() {
               <span className="cnav-label">{item.label}</span>
             </button>
           ))}
-
           <div style={{ flex:1 }} />
-          <button className="cnav-btn" onClick={handleLogout}
-            style={{ color:'#ef4444' }}>
+          <button className="cnav-btn" onClick={handleLogout} style={{ color:'#ef4444' }}>
             <span className="cnav-label">Logout</span>
           </button>
         </nav>
 
-        {/* Profile row */}
         <div className="cdash-profile" ref={profileRef}
           onClick={() => setProfileMenuOpen((p) => !p)}>
           <div className="cprofile-av">{initials}</div>
@@ -248,7 +237,6 @@ export default function ClientDashboard() {
         </div>
       </aside>
 
-      {/* ── Main ── */}
       <main className="cdash-main">
         <div className="cdash-header">
           <div>
@@ -262,18 +250,13 @@ export default function ClientDashboard() {
             <div key={s.label} className="cstat-card">
               <p className="cstat-label">{s.label}</p>
               <p className="cstat-value">{s.value}</p>
-              {s.delta && <span className="cstat-delta">{s.delta}</span>}
             </div>
           ))}
         </div>
 
         <div className="csearch-section">
-          <input
-            type="text"
-            placeholder="Search freelancers by name or bio..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <input type="text" placeholder="Search freelancers by name or bio..."
+            value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           <div className="cskill-filters">
             {allSkills.slice(0, 8).map((skill) => (
               <button key={skill}
@@ -324,12 +307,10 @@ export default function ClientDashboard() {
                 )}
 
                 <div className="cfc-actions">
-                  {f.portfolioLink && (
-                    <a href={f.portfolioLink} target="_blank" rel="noreferrer"
-                      className="cfc-btn-outline">
-                      Portfolio
-                    </a>
-                  )}
+                  <button className="cfc-btn-outline"
+                    onClick={() => setDetailFreelancer(f)}>
+                    View Details
+                  </button>
                   <button className="cfc-btn-solid" onClick={() => handleMessage(f)}>
                     💬 Message
                   </button>
@@ -339,6 +320,93 @@ export default function ClientDashboard() {
           </div>
         )}
       </main>
+
+      {
+      detailFreelancer && (
+        <div className="cdash-modal-overlay"
+          onMouseDown={e => { if (e.target === e.currentTarget) setDetailFreelancer(null); }}>
+          <div className="cdash-modal">
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+                <div className="cfc-avatar" style={{ width:48, height:48, fontSize:16, flexShrink:0 }}>
+                  {getInitials(detailFreelancer.name || 'U')}
+                </div>
+                <div>
+                  <p style={{ fontFamily:'Space Grotesk,sans-serif', fontSize:'16px',
+                    fontWeight:700, color:'#fff', margin:0 }}>
+                    {detailFreelancer.name || 'Unknown'}
+                  </p>
+                  <p style={{ fontSize:'12px', color:'#6b7280', margin:0 }}>
+                    {detailFreelancer.location || 'Remote'}
+                    {detailFreelancer.hourlyRate > 0 && ` · $${detailFreelancer.hourlyRate}/hr`}
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => setDetailFreelancer(null)}
+                style={{ background:'none', border:'none', color:'#888',
+                  fontSize:'22px', cursor:'pointer', lineHeight:1 }}>×</button>
+            </div>
+
+            {/* Bio */}
+            {detailFreelancer.bio && (
+              <div className="cdash-modal-section">
+                <p className="cdash-modal-label">About</p>
+                <p style={{ fontSize:'13px', color:'#d1d5db', lineHeight:1.6 }}>
+                  {detailFreelancer.bio}
+                </p>
+              </div>
+            )}
+
+            {/* Skills */}
+            {(detailFreelancer.skills || []).length > 0 && (
+              <div className="cdash-modal-section">
+                <p className="cdash-modal-label">Skills</p>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:'6px' }}>
+                  {detailFreelancer.skills.map(s => (
+                    <span key={s} className="cfc-tag">{s}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Experience */}
+            {detailFreelancer.experience && (
+              <div className="cdash-modal-section">
+                <p className="cdash-modal-label">Experience</p>
+                <p style={{ fontSize:'13px', color:'#d1d5db' }}>
+                  🕐 {detailFreelancer.experience}
+                </p>
+              </div>
+            )}
+
+            {/* Rate */}
+            {detailFreelancer.hourlyRate > 0 && (
+              <div className="cdash-modal-section">
+                <p className="cdash-modal-label">Hourly Rate</p>
+                <p style={{ fontSize:'20px', fontWeight:700, color:'#22c55e' }}>
+                  ${detailFreelancer.hourlyRate}/hr
+                </p>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div style={{ display:'flex', gap:'8px', marginTop:'20px' }}>
+              {detailFreelancer.portfolioLink && (
+                <a href={detailFreelancer.portfolioLink} target="_blank" rel="noreferrer"
+                  className="cfc-btn-outline" style={{ flex:1, textAlign:'center',
+                    padding:'9px', textDecoration:'none' }}>
+                  🔗 Portfolio
+                </a>
+              )}
+              <button className="cfc-btn-solid"
+                style={{ flex:1, padding:'9px' }}
+                onClick={() => { setDetailFreelancer(null); handleMessage(detailFreelancer); }}>
+                💬 Message
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
