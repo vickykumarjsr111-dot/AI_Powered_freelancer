@@ -47,7 +47,7 @@ export default function FreelancerMessages() {
       case 'proposals': navigate('/freelancer/proposals'); break;
       case 'messages':  navigate('/freelancer/messages');  break;
       case 'earnings':  navigate('/freelancer/earnings');  break;
-      case 'settings':  navigate('/freelancer/settings');  break;
+      case 'settings':  navigate('/freelancer/profile');  break;
       default: break;
     }
   };

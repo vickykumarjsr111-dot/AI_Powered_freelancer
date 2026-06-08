@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
 
-/* ── Floating Button ── */
+
 .ai-fab {
   position: fixed;
   bottom: 24px;
@@ -22,7 +22,7 @@
 }
 .ai-fab:hover { transform: scale(1.08); background: #e5e5e5; }
 
-/* ── Chat Window ── */
+
 .ai-window {
   position: fixed;
   bottom: 88px;
@@ -46,7 +46,7 @@
   to   { opacity: 1; transform: translateY(0)   scale(1);    }
 }
 
-/* ── Header ── */
+
 .ai-window-header {
   display: flex;
   align-items: center;
@@ -81,7 +81,7 @@
 }
 .ai-close-btn:hover { color: #fff; }
 
-/* ── Messages ── */
+
 .ai-messages {
   flex: 1;
   overflow-y: auto;
@@ -128,7 +128,7 @@
   border-bottom-right-radius: 3px;
 }
 
-/* ── Typing indicator ── */
+
 .ai-typing {
   display: flex !important;
   align-items: center;
@@ -148,7 +148,7 @@
   30%            { opacity: 1;   transform: translateY(-3px); }
 }
 
-/* ── Suggestions ── */
+
 .ai-suggestions {
   display: flex;
   gap: 6px;
@@ -165,7 +165,7 @@
 }
 .ai-suggestion-btn:hover { border-color: #2f2f2f; color: #fff; }
 
-/* ── Input ── */
+
 .ai-input-row {
   display: flex;
   align-items: center;
@@ -198,7 +198,7 @@
 .ai-send-btn:hover:not(:disabled) { background: #e5e5e5; }
 .ai-send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-/* ── Mobile ── */
+
 @media (max-width: 480px) {
   .ai-window {
     bottom: 0; right: 0; left: 0;

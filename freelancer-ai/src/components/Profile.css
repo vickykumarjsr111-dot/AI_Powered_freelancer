@@ -1,402 +1,645 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
 
-.profile-page {
-  min-height: 100vh;
-  width: 100%;
-  padding: 1.5rem;
+/* ── Shell ── */
+.pf-shell {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  min-height: 100vh;
+  background: #000;
+  color: #fff;
   font-family: 'Inter', sans-serif;
 }
 
-.profile-card {
-  width: 100%;
-  max-width: 620px;
-
-  background: rgba(255, 255, 255, 0.045);
-
-  border: 1px solid rgba(255, 255, 255, 0.08);
-
-  border-radius: 1.2rem;
-
-  padding: 1.8rem;
-
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-
-  box-shadow:
-    0 8px 28px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255,255,255,0.05);
-}
-
-/* =========================
-   PROFILE AVATAR SECTION
-========================= */
-
-.profile-avatar-wrapper{
+.pf-loading {
   display: flex;
-  justify-content: center;
   align-items: center;
-
-  margin: 0 auto 1.8rem;
+  justify-content: center;
+  min-height: 100vh;
+  background: #000;
+  color: #fff;
+  font-size: 14px;
 }
 
-.profile-avatar{
+/* ── Desktop Sidebar ── */
+.pf-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: #050505;
+  border-right: 1px solid #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 20px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* ── Avatar block ── */
+.pf-avatar-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.pf-avatar {
   position: relative;
-
-  width: 120px;
-  height: 120px;
-
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
-
-  background:
-    linear-gradient(135deg,#1f1f1f,#2d2d2d);
-
-  border: 3px solid rgba(255,255,255,0.08);
-
+  background: #1a1a1a;
+  border: 2px solid #2a2a2a;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  overflow: visible;
-
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 2.8rem;
+  font-size: 28px;
   font-weight: 700;
-  color: #ffffff;
-
-  box-shadow:
-    0 0 30px rgba(0,255,120,0.15),
-    inset 0 0 15px rgba(255,255,255,0.03);
-
-  transition: 0.25s ease;
+  overflow: visible;
 }
 
-.profile-avatar:hover{
-  transform: scale(1.03);
-}
-
-.profile-avatar img{
+.pf-avatar-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-
   border-radius: 50%;
 }
 
-/* =========================
-   + BUTTON
-========================= */
-.profile-upload-btn{
+.pf-avatar-initials {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.pf-avatar-upload {
   position: absolute;
-
-  bottom: 6px;
-  right: 6px;
-
-  width: 34px;
-  height: 34px;
-
+  bottom: 2px;
+  right: 2px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-
-  background: #00d95f;
+  background: #22c55e;
+  border: 2px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
   color: #fff;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 1.2rem;
-  font-weight: 700;
-
-  cursor: pointer;
-
-  border: 3px solid #0b0b0b;
-
-  box-shadow:
-    0 0 12px rgba(0,217,95,0.45);
-
-  z-index: 999;
-
-  /* HALF OUTSIDE */
-  transform: translate(18%, 18%);
+  z-index: 10;
 }
-/* =========================
-   TITLE
-========================= */
 
-.profile-card h1 {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 2rem;
-  font-weight: 700;
-  line-height: 1.3;
-
-  padding-bottom: 0.2rem;
-
-  margin-bottom: 1.4rem;
-
+.pf-avatar-name {
+  font-weight: 600;
+  font-size: 15px;
+  margin: 4px 0 0;
   text-align: center;
-
-  background:
-    linear-gradient(
-      to right,
-      #ceddd6f5,
-      #c9d4d1c4,
-      #043e0b
-    );
-
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
-/* =========================
-   FORM
-========================= */
+.pf-avatar-role {
+  font-size: 12px;
+  color: #666;
+  text-transform: capitalize;
+  margin: 0;
+}
 
-.profile-form {
+/* ── Availability ── */
+.pf-availability {
   display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
+  gap: 4px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 20px;
+  padding: 3px;
+  margin-top: 4px;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-}
-
-.form-group label {
-  color: #d1d5db;
-  font-size: 0.88rem;
-  font-weight: 500;
-}
-
-.profile-form input,
-.profile-form textarea {
-  width: 100%;
-
-  padding: 0.8rem 0.95rem;
-
-  border-radius: 0.75rem;
-
-  border: 1px solid rgba(255,255,255,0.08);
-
-  background: rgba(255,255,255,0.04);
-
-  color: #ffffff;
-
-  font-size: 0.92rem;
-
-  font-family: 'Inter', sans-serif;
-
-  outline: none;
-
-  transition: 0.25s ease;
-}
-
-.profile-form input::placeholder,
-.profile-form textarea::placeholder {
-  color: #9ca3af;
-}
-
-.profile-form input:focus,
-.profile-form textarea:focus {
-  border-color: rgba(255,255,255,0.25);
-  background: rgba(255,255,255,0.07);
-}
-
-.profile-form textarea {
-  resize: vertical;
-  min-height: 100px;
-}
-
-/* =========================
-   ACTION BUTTONS
-========================= */
-
-.profile-actions {
-  display: flex;
-  gap: 0.8rem;
-  margin-top: 0.6rem;
-}
-
-.save-btn,
-.cancel-btn {
-  flex: 1;
-
-  padding: 0.85rem;
-
-  border-radius: 0.75rem;
-
-  font-family: 'Inter', sans-serif;
-  font-size: 0.92rem;
-  font-weight: 600;
-
-  cursor: pointer;
-
-  transition: 0.25s ease;
-}
-
-.save-btn {
-  background: #ffffff;
-  color: #000000;
+.pf-avail-btn {
+  padding: 4px 10px;
+  border-radius: 16px;
   border: none;
-}
-
-.save-btn:hover {
-  background: #d1d5db;
-  transform: translateY(-1px);
-}
-
-.cancel-btn {
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
   background: transparent;
-  color: #ffffff;
-
-  border: 1px solid rgba(255,255,255,0.15);
+  color: #666;
+  transition: 0.15s;
+  font-family: 'Inter', sans-serif;
 }
 
-.cancel-btn:hover {
-  border-color: rgba(255,255,255,0.35);
-  background: rgba(255,255,255,0.04);
+.pf-avail-btn--active {
+  background: #fff;
+  color: #000;
 }
 
-/* =========================
-   LOADING
-========================= */
-
-.loading-profile {
-  min-height: 100vh;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  color: white;
-  font-size: 0.95rem;
-}
-
-/* =========================
-   ROLE SELECTOR
-========================= */
-
-.role-selector {
-  display: flex;
-  gap: 0.75rem;
-  margin-bottom: 1.4rem;
-}
-
-.role-btn {
-  flex: 1;
-
+/* ── Section nav ── */
+.pf-nav {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.3rem;
+  gap: 2px;
+  flex: 1;
+}
 
-  padding: 0.75rem 0.5rem;
-
-  border-radius: 0.75rem;
-
-  border: 1px solid rgba(255, 255, 255, 0.1);
-
-  background: rgba(255, 255, 255, 0.04);
-
-  color: #d1d5db;
-
-  font-family: 'Inter', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 500;
-
+.pf-nav-btn {
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #666;
+  font-size: 13px;
+  text-align: left;
   cursor: pointer;
-
-  transition: 0.2s ease;
+  transition: 0.15s;
+  font-family: 'Inter', sans-serif;
 }
 
-.role-btn:hover {
-  border-color: rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.07);
+.pf-nav-btn:hover {
+  background: #111;
+  color: #aaa;
 }
 
-.role-btn--active {
-  border-color: rgba(255, 255, 255, 0.45);
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+.pf-nav-btn--active {
+  background: #1a1a1a;
+  color: #fff;
 }
 
-.role-emoji {
-  font-size: 1.3rem;
+/* ── Role switcher ── */
+.pf-role-block {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid #1a1a1a;
 }
 
-.role-label {
+.pf-role-label {
+  font-size: 11px;
+  color: #555;
+  margin: 0 0 8px;
+  letter-spacing: 0.05em;
+}
+
+.pf-role-btns {
+  display: flex;
+  gap: 6px;
+}
+
+.pf-role-btn {
+  flex: 1;
+  padding: 7px 0;
+  border-radius: 8px;
+  border: 1px solid #222;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  background: transparent;
+  color: #666;
+  transition: 0.15s;
+  text-transform: capitalize;
+  font-family: 'Inter', sans-serif;
+}
+
+.pf-role-btn--active {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+}
+
+.pf-back-btn {
+  margin-top: 12px;
+  padding: 9px 0;
+  border-radius: 8px;
+  border: 1px solid #222;
+  background: transparent;
+  color: #666;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: 0.15s;
+  width: 100%;
+}
+
+.pf-back-btn:hover {
+  color: #aaa;
+  border-color: #333;
+}
+
+/* ── Main ── */
+.pf-main {
+  flex: 1;
+  padding: 40px 48px;
+  max-width: 720px;
+}
+
+.pf-header {
+  margin-bottom: 32px;
+}
+
+.pf-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.pf-sub {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* ── Section ── */
+.pf-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Field ── */
+.pf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pf-label {
+  font-size: 13px;
+  color: #aaa;
+  font-weight: 500;
+}
+
+.pf-required {
+  color: #ef4444;
+}
+
+/* ── Inputs ── */
+.pf-input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #1f1f1f;
+  background: #0a0a0a;
+  color: #fff;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.pf-input:focus {
+  border-color: #333;
+}
+
+.pf-input::placeholder {
+  color: #444;
+}
+
+.pf-textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.6;
+}
+
+.pf-select {
+  cursor: pointer;
+  appearance: none;
+}
+
+.pf-select option {
+  background: #111;
+}
+
+/* ── Two col ── */
+.pf-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ── Skills ── */
+.pf-skill-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.pf-add-btn {
+  padding: 0 18px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  background: #fff;
+  color: #000;
+  font-family: 'Inter', sans-serif;
+  transition: 0.15s;
+  white-space: nowrap;
+}
+
+.pf-add-btn:disabled {
+  background: #1a1a1a;
+  color: #555;
+  cursor: default;
+}
+
+.pf-sublabel {
+  font-size: 11px;
+  color: #555;
+  letter-spacing: 0.05em;
+  margin: 0 0 8px;
+}
+
+.pf-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pf-suggestion-btn {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid #2a2a2a;
+  background: #111;
+  color: #aaa;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: 0.15s;
+}
+
+.pf-suggestion-btn:hover {
+  border-color: #444;
+  color: #fff;
+}
+
+.pf-selected-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pf-skill-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  font-size: 13px;
+}
+
+.pf-skill-remove {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 0;
+  transition: 0.15s;
+}
+
+.pf-skill-remove:hover {
+  color: #ef4444;
+}
+
+.pf-empty-note {
+  color: #555;
+  font-size: 14px;
+}
+
+/* ── Save ── */
+.pf-save-row {
+  margin-top: 36px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.pf-save-btn {
+  padding: 12px 32px;
+  border-radius: 10px;
+  border: none;
+  background: #fff;
+  color: #000;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: 0.2s;
+}
+
+.pf-save-btn:hover {
+  background: #e5e5e5;
+}
+
+.pf-save-btn--saving {
+  background: #1a1a1a;
+  color: #555;
+  cursor: default;
+}
+
+.pf-saved-msg {
+  color: #22c55e;
+  font-size: 13px;
   font-weight: 600;
 }
 
-/* =========================
-   MOBILE
-========================= */
+/* ── Hide all mobile-only elements on desktop ── */
+.pf-mobile-topbar,
+.pf-mobile-tabs,
+.pf-mobile-drawer,
+.pf-mobile-overlay,
+.pf-mobile-menu-btn,
+.pf-mobile-brand,
+.pf-mobile-av,
+.pf-mobile-close,
+.pf-mobile-tab {
+  display: none;
+}
 
+/* ── Mobile ── */
 @media (max-width: 768px) {
 
-  .profile-page {
-    padding: 1rem;
-    align-items: flex-start;
-    padding-top: 1.5rem;
-  }
-
-  .profile-card {
-    max-width: 100%;
-    padding: 1.3rem;
-    border-radius: 1rem;
-  }
-
-  .profile-card h1 {
-    font-size: 1.7rem;
-  }
-
-  .profile-avatar{
-    width: 95px;
-    height: 95px;
-    font-size: 2rem;
-  }
-
-  .profile-upload-btn{
-    width: 30px;
-    height: 30px;
-    font-size: 1.1rem;
-
-    bottom: 2px;
-    right: 0;
-
-    transform: translate(18%, 18%);
-  }
-
-  .profile-upload-btn:hover{
-    transform: translate(18%, 18%) scale(1.08);
-  }
-
-  .profile-actions {
+  .pf-shell {
     flex-direction: column;
   }
-}
-.profile-avatar-fallback{
-  width: 100%;
-  height: 100%;
 
-  border-radius: 50%;
+  .pf-sidebar {
+    display: none;
+  }
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  /* Top bar */
+  .pf-mobile-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: #050505;
+    border-bottom: 1px solid #1a1a1a;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
 
-  background:
-    linear-gradient(135deg,#1f1f1f,#2d2d2d);
-}
+  .pf-mobile-menu-btn {
+    display: block;
+    background: none;
+    border: 1px solid #222;
+    color: #aaa;
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+  }
 
-.profile-avatar-text{
-  font-size: 2.8rem;
-  font-weight: 700;
-  color: #ffffff;
+  .pf-mobile-brand {
+    display: block;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+  }
 
-  line-height: 1;
+  .pf-mobile-brand span {
+    color: #9ca3af;
+  }
+
+  .pf-mobile-av {
+    display: flex;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .pf-mobile-av img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  /* Overlay — hidden until active */
+  .pf-mobile-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 99;
+  }
+
+  .pf-mobile-overlay--active {
+    display: block;
+  }
+
+  /* Drawer — off-screen until open */
+  .pf-mobile-drawer {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 260px;
+    height: 100vh;
+    background: #050505;
+    border-right: 1px solid #1a1a1a;
+    z-index: 100;
+    flex-direction: column;
+    padding: 24px 16px;
+    transition: left 0.25s ease;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+
+  .pf-mobile-drawer--open {
+    left: 0;
+  }
+
+  .pf-mobile-close {
+    display: block;
+    align-self: flex-end;
+    background: none;
+    border: 1px solid #222;
+    color: #666;
+    border-radius: 8px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-bottom: 20px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Section tabs */
+  .pf-mobile-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -ms-overflow-style: none;
+  }
+
+  /* hide scrollbar in Firefox */
+  @supports (scrollbar-width: none) {
+    .pf-mobile-tabs {
+      scrollbar-width: none;
+    }
+  }
+
+  .pf-mobile-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pf-mobile-tab {
+    display: inline-block;
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1px solid #222;
+    background: #0a0a0a;
+    color: #666;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: 'Inter', sans-serif;
+    transition: 0.15s;
+    flex-shrink: 0;
+  }
+
+  .pf-mobile-tab--active {
+    background: #fff;
+    color: #000;
+    border-color: #fff;
+  }
+
+  /* Main */
+  .pf-main {
+    padding: 24px 16px 100px;
+    max-width: 100%;
+  }
+
+  .pf-title {
+    font-size: 22px;
+  }
+
+  .pf-two-col {
+    grid-template-columns: 1fr;
+  }
+
+  .pf-save-btn {
+    width: 100%;
+    padding: 14px;
+  }
+
+  .pf-save-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }

@@ -5,7 +5,7 @@ import { auth, db } from '../firebase';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import {
   doc, getDoc, collection, onSnapshot,
-  orderBy, query, where               // ← added where
+  orderBy, query, where              
 } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import './BrowseJobs.css';
@@ -47,10 +47,9 @@ export default function BrowseJobs() {
       }
     });
 
-    // ── Only fetch jobs where open === true ──────────────────────────────
     const q = query(
       collection(db, 'jobs'),
-      where('open', '==', true),      // ← filters out accepted jobs
+      where('open', '==', true),      
       orderBy('createdAt', 'desc')
     );
     const unsubJobs = onSnapshot(q, (snap) => {
@@ -79,7 +78,7 @@ export default function BrowseJobs() {
       case 'proposals': navigate('/freelancer/proposals'); break;
       case 'messages':  navigate('/freelancer/messages');  break;
       case 'earnings':  navigate('/freelancer/earnings');  break;
-      case 'settings':  navigate('/freelancer/settings');   break;
+      case 'settings':  navigate('/freelancer/profile');   break;
       default: break;
     }
   };
@@ -114,7 +113,6 @@ export default function BrowseJobs() {
   return (
     <div className="browse-shell">
 
-      {/* ── Sidebar ── */}
       <aside className={`browse-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="browse-brand">
           <div className="brand-icon">
@@ -281,7 +279,6 @@ export default function BrowseJobs() {
         </div>
       </main>
 
-      {/* ── Details Modal ── */}
       {selectedJob && (
         <div className="job-modal-overlay"
           onMouseDown={(e) => { if (e.target === e.currentTarget) setSelectedJob(null); }}>

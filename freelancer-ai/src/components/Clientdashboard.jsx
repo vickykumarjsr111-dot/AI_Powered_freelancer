@@ -22,6 +22,7 @@ export default function ClientDashboard() {
   const [searchTerm, setSearchTerm]           = useState('');
   const [selectedSkill, setSelectedSkill]     = useState('All');
   const [detailFreelancer, setDetailFreelancer] = useState(null);
+  const [modalTab, setModalTab]               = useState('about');
 
   const [activeContractsCount, setActiveContractsCount]   = useState(0);
   const [pendingProposalsCount, setPendingProposalsCount] = useState(0);
@@ -136,6 +137,11 @@ export default function ClientDashboard() {
     }
   };
 
+  const closeModal = () => {
+    setDetailFreelancer(null);
+    setModalTab('about');
+  };
+
   const allSkills = ['All', ...new Set(freelancers.flatMap((f) => f.skills || []))];
 
   const filtered = freelancers.filter((f) => {
@@ -149,10 +155,7 @@ export default function ClientDashboard() {
 
   if (loading) {
     return (
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'center',
-        minHeight:'100vh', color:'#fff', fontSize:'14px' }}>
-        Loading...
-      </div>
+      <div className="cdash-loading">Loading...</div>
     );
   }
 
@@ -175,22 +178,23 @@ export default function ClientDashboard() {
   return (
     <div className="cdash-shell">
 
+      {/* ── Sidebar ── */}
       <aside className="cdash-sidebar">
         <div className="cdash-brand">
           <div className="cbrand-icon">
-            <img src="/image.png" alt="Logo" style={{ width:20, height:20, objectFit:'contain' }} />
+            <img src="/image.png" alt="Logo" style={{ width: 20, height: 20, objectFit: 'contain' }} />
           </div>
           <span className="cdash-brandname">Hustlance<span>AI</span></span>
         </div>
 
         <nav className="cdash-nav">
           {[
-            { id:'dashboard', label:'Dashboard'  },
-            { id:'post-job',  label:'Post a Job' },
-            { id:'messages',  label:'Messages'   },
-            { id:'contracts', label:'Contracts'  },
-            { id:'payments',  label:'Payments'   },
-            { id:'settings',  label:'Settings'   },
+            { id: 'dashboard', label: 'Dashboard'  },
+            { id: 'post-job',  label: 'Post a Job' },
+            { id: 'messages',  label: 'Messages'   },
+            { id: 'contracts', label: 'Contracts'  },
+            { id: 'payments',  label: 'Payments'   },
+            { id: 'settings',  label: 'Settings'   },
           ].map((item) => (
             <button key={item.id}
               className={`cnav-btn ${activeNav === item.id ? 'cnav-btn--active' : ''}`}
@@ -198,8 +202,8 @@ export default function ClientDashboard() {
               <span className="cnav-label">{item.label}</span>
             </button>
           ))}
-          <div style={{ flex:1 }} />
-          <button className="cnav-btn" onClick={handleLogout} style={{ color:'#ef4444' }}>
+          <div style={{ flex: 1 }} />
+          <button className="cnav-btn cnav-btn--logout" onClick={handleLogout}>
             <span className="cnav-label">Logout</span>
           </button>
         </nav>
@@ -209,7 +213,7 @@ export default function ClientDashboard() {
           <div className="cprofile-av">{initials}</div>
           <div className="cprofile-info">
             <p className="cprofile-name">{name}</p>
-            <p className="cprofile-role" style={{ textTransform:'capitalize' }}>{role}</p>
+            <p className="cprofile-role">{role}</p>
           </div>
           <span className="conline-dot" />
 
@@ -219,7 +223,7 @@ export default function ClientDashboard() {
                 <div className="cpopup-av">{initials}</div>
                 <div>
                   <p className="cpopup-name">{name}</p>
-                  <p className="cpopup-role" style={{ textTransform:'capitalize' }}>{role}</p>
+                  <p className="cpopup-role">{role}</p>
                 </div>
               </div>
               <div className="cpopup-divider" />
@@ -237,6 +241,7 @@ export default function ClientDashboard() {
         </div>
       </aside>
 
+      {/* ── Main ── */}
       <main className="cdash-main">
         <div className="cdash-header">
           <div>
@@ -255,8 +260,12 @@ export default function ClientDashboard() {
         </div>
 
         <div className="csearch-section">
-          <input type="text" placeholder="Search freelancers by name or bio..."
-            value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <input
+            type="text"
+            placeholder="Search freelancers by name or bio..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
           <div className="cskill-filters">
             {allSkills.slice(0, 8).map((skill) => (
               <button key={skill}
@@ -303,12 +312,12 @@ export default function ClientDashboard() {
                 </div>
 
                 {f.experience && (
-                  <p className="cfc-exp">🕐 {f.experience} experience</p>
+                  <p className="cfc-exp">🕐 {f.experience}</p>
                 )}
 
                 <div className="cfc-actions">
                   <button className="cfc-btn-outline"
-                    onClick={() => setDetailFreelancer(f)}>
+                    onClick={() => { setDetailFreelancer(f); setModalTab('about'); }}>
                     View Details
                   </button>
                   <button className="cfc-btn-solid" onClick={() => handleMessage(f)}>
@@ -321,92 +330,156 @@ export default function ClientDashboard() {
         )}
       </main>
 
-      {
-      detailFreelancer && (
-        <div className="cdash-modal-overlay"
-          onMouseDown={e => { if (e.target === e.currentTarget) setDetailFreelancer(null); }}>
+      {/* ── Freelancer Detail Modal ── */}
+      {detailFreelancer && (
+        <div
+          className="cdash-modal-overlay"
+          onMouseDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
           <div className="cdash-modal">
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
-                <div className="cfc-avatar" style={{ width:48, height:48, fontSize:16, flexShrink:0 }}>
+
+            {/* Modal Header */}
+            <div className="cdash-modal-header">
+              <div className="cdash-modal-identity">
+                <div className="cfc-avatar cdash-modal-avatar">
                   {getInitials(detailFreelancer.name || 'U')}
                 </div>
                 <div>
-                  <p style={{ fontFamily:'Space Grotesk,sans-serif', fontSize:'16px',
-                    fontWeight:700, color:'#fff', margin:0 }}>
-                    {detailFreelancer.name || 'Unknown'}
-                  </p>
-                  <p style={{ fontSize:'12px', color:'#6b7280', margin:0 }}>
+                  <p className="cdash-modal-name">{detailFreelancer.name || 'Unknown'}</p>
+                  <p className="cdash-modal-meta">
                     {detailFreelancer.location || 'Remote'}
                     {detailFreelancer.hourlyRate > 0 && ` · $${detailFreelancer.hourlyRate}/hr`}
                   </p>
                 </div>
               </div>
-              <button onClick={() => setDetailFreelancer(null)}
-                style={{ background:'none', border:'none', color:'#888',
-                  fontSize:'22px', cursor:'pointer', lineHeight:1 }}>×</button>
+              <button className="cdash-modal-close" onClick={closeModal}>×</button>
             </div>
 
-            {/* Bio */}
-            {detailFreelancer.bio && (
-              <div className="cdash-modal-section">
-                <p className="cdash-modal-label">About</p>
-                <p style={{ fontSize:'13px', color:'#d1d5db', lineHeight:1.6 }}>
-                  {detailFreelancer.bio}
-                </p>
+            {/* Availability badge */}
+            {detailFreelancer.availability && (
+              <div className="cdash-modal-avail-row">
+                <span className={`cdash-modal-avail cdash-modal-avail--${detailFreelancer.availability}`}>
+                  {detailFreelancer.availability}
+                </span>
               </div>
             )}
 
-            {/* Skills */}
-            {(detailFreelancer.skills || []).length > 0 && (
-              <div className="cdash-modal-section">
-                <p className="cdash-modal-label">Skills</p>
-                <div style={{ display:'flex', flexWrap:'wrap', gap:'6px' }}>
-                  {detailFreelancer.skills.map(s => (
-                    <span key={s} className="cfc-tag">{s}</span>
-                  ))}
-                </div>
+            {/* Tabs */}
+            <div className="cdash-modal-tabs">
+              {['about', 'skills', 'links'].map((tab) => (
+                <button
+                  key={tab}
+                  className={`cdash-modal-tab ${modalTab === tab ? 'cdash-modal-tab--active' : ''}`}
+                  onClick={() => setModalTab(tab)}>
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            {/* ── About Tab ── */}
+            {modalTab === 'about' && (
+              <div className="cdash-modal-tab-panel">
+                {detailFreelancer.bio && (
+                  <div className="cdash-modal-field">
+                    <p className="cdash-modal-label">About</p>
+                    <p className="cdash-modal-value">{detailFreelancer.bio}</p>
+                  </div>
+                )}
+                {detailFreelancer.experience && (
+                  <div className="cdash-modal-field">
+                    <p className="cdash-modal-label">Experience</p>
+                    <p className="cdash-modal-value">🕐 {detailFreelancer.experience}</p>
+                  </div>
+                )}
+                {detailFreelancer.hourlyRate > 0 && (
+                  <div className="cdash-modal-field">
+                    <p className="cdash-modal-label">Hourly Rate</p>
+                    <p className="cdash-modal-rate">${detailFreelancer.hourlyRate}/hr</p>
+                  </div>
+                )}
+                {!detailFreelancer.bio && !detailFreelancer.experience && (
+                  <p className="cdash-modal-empty">No details provided.</p>
+                )}
               </div>
             )}
 
-            {/* Experience */}
-            {detailFreelancer.experience && (
-              <div className="cdash-modal-section">
-                <p className="cdash-modal-label">Experience</p>
-                <p style={{ fontSize:'13px', color:'#d1d5db' }}>
-                  🕐 {detailFreelancer.experience}
-                </p>
+            {/* ── Skills Tab ── */}
+            {modalTab === 'skills' && (
+              <div className="cdash-modal-tab-panel">
+                {(detailFreelancer.skills || []).length > 0 ? (
+                  <div className="cdash-modal-field">
+                    <p className="cdash-modal-label">
+                      Skills ({detailFreelancer.skills.length})
+                    </p>
+                    <div className="cdash-modal-tags">
+                      {detailFreelancer.skills.map((s) => (
+                        <span key={s} className="cfc-tag cdash-modal-skill-tag">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="cdash-modal-empty">No skills listed.</p>
+                )}
               </div>
             )}
 
-            {/* Rate */}
-            {detailFreelancer.hourlyRate > 0 && (
-              <div className="cdash-modal-section">
-                <p className="cdash-modal-label">Hourly Rate</p>
-                <p style={{ fontSize:'20px', fontWeight:700, color:'#22c55e' }}>
-                  ${detailFreelancer.hourlyRate}/hr
-                </p>
+            {/* ── Links Tab ── */}
+            {modalTab === 'links' && (
+              <div className="cdash-modal-tab-panel">
+                {detailFreelancer.portfolioLink && (
+                  <div className="cdash-modal-field">
+                    <p className="cdash-modal-label">Portfolio</p>
+                    <a
+                      href={detailFreelancer.portfolioLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="cdash-modal-link">
+                      🔗 {detailFreelancer.portfolioLink}
+                    </a>
+                  </div>
+                )}
+                {detailFreelancer.linkedin && (
+                  <div className="cdash-modal-field">
+                    <p className="cdash-modal-label">LinkedIn</p>
+                    <a
+                      href={detailFreelancer.linkedin}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="cdash-modal-link">
+                      🔗 {detailFreelancer.linkedin}
+                    </a>
+                  </div>
+                )}
+                {detailFreelancer.github && (
+                  <div className="cdash-modal-field">
+                    <p className="cdash-modal-label">GitHub</p>
+                    <a
+                      href={detailFreelancer.github}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="cdash-modal-link">
+                      🔗 {detailFreelancer.github}
+                    </a>
+                  </div>
+                )}
+                {!detailFreelancer.portfolioLink && !detailFreelancer.linkedin && !detailFreelancer.github && (
+                  <p className="cdash-modal-empty">No links provided.</p>
+                )}
               </div>
             )}
 
-            {/* Actions */}
-            <div style={{ display:'flex', gap:'8px', marginTop:'20px' }}>
-              {detailFreelancer.portfolioLink && (
-                <a href={detailFreelancer.portfolioLink} target="_blank" rel="noreferrer"
-                  className="cfc-btn-outline" style={{ flex:1, textAlign:'center',
-                    padding:'9px', textDecoration:'none' }}>
-                  🔗 Portfolio
-                </a>
-              )}
-              <button className="cfc-btn-solid"
-                style={{ flex:1, padding:'9px' }}
-                onClick={() => { setDetailFreelancer(null); handleMessage(detailFreelancer); }}>
+            {/* Modal Actions */}
+            <div className="cdash-modal-actions">
+              <button
+                className="cfc-btn-solid"
+                onClick={() => { closeModal(); handleMessage(detailFreelancer); }}>
                 💬 Message
               </button>
             </div>
+
           </div>
         </div>
       )}
+
     </div>
   );
 }
