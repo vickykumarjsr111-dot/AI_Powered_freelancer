@@ -301,7 +301,7 @@ export default function FreelancerProposals() {
                         </div>
                         <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
                           <StatusBadge status={p.status} />
-                          {/* Delete button — only for pending proposals */}
+                          
                           {p.status === 'pending' && (
                             <button
                               onClick={() => handleDelete(p.id)}
@@ -343,7 +343,6 @@ export default function FreelancerProposals() {
           </div>
         </main>
 
-        {/* ── Modal ── */}
         {showModal && selectedJob && (
           <div className="fp-modal-overlay"
             onMouseDown={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}>

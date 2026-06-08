@@ -330,14 +330,12 @@ export default function ClientDashboard() {
         )}
       </main>
 
-      {/* ── Freelancer Detail Modal ── */}
       {detailFreelancer && (
         <div
           className="cdash-modal-overlay"
           onMouseDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
           <div className="cdash-modal">
 
-            {/* Modal Header */}
             <div className="cdash-modal-header">
               <div className="cdash-modal-identity">
                 <div className="cfc-avatar cdash-modal-avatar">
@@ -354,7 +352,6 @@ export default function ClientDashboard() {
               <button className="cdash-modal-close" onClick={closeModal}>×</button>
             </div>
 
-            {/* Availability badge */}
             {detailFreelancer.availability && (
               <div className="cdash-modal-avail-row">
                 <span className={`cdash-modal-avail cdash-modal-avail--${detailFreelancer.availability}`}>
@@ -363,7 +360,6 @@ export default function ClientDashboard() {
               </div>
             )}
 
-            {/* Tabs */}
             <div className="cdash-modal-tabs">
               {['about', 'skills', 'links'].map((tab) => (
                 <button
@@ -375,7 +371,6 @@ export default function ClientDashboard() {
               ))}
             </div>
 
-            {/* ── About Tab ── */}
             {modalTab === 'about' && (
               <div className="cdash-modal-tab-panel">
                 {detailFreelancer.bio && (
@@ -402,7 +397,6 @@ export default function ClientDashboard() {
               </div>
             )}
 
-            {/* ── Skills Tab ── */}
             {modalTab === 'skills' && (
               <div className="cdash-modal-tab-panel">
                 {(detailFreelancer.skills || []).length > 0 ? (
@@ -422,7 +416,6 @@ export default function ClientDashboard() {
               </div>
             )}
 
-            {/* ── Links Tab ── */}
             {modalTab === 'links' && (
               <div className="cdash-modal-tab-panel">
                 {detailFreelancer.portfolioLink && (
@@ -467,7 +460,6 @@ export default function ClientDashboard() {
               </div>
             )}
 
-            {/* Modal Actions */}
             <div className="cdash-modal-actions">
               <button
                 className="cfc-btn-solid"

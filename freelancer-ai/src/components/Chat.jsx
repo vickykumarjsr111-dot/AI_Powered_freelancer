@@ -1,4 +1,3 @@
-// src/pages/Chat.jsx
 import { useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import {
@@ -24,10 +23,9 @@ export default function Chat() {
   const [messages,    setMessages]    = useState([]);
   const [text,        setText]        = useState('');
   const [loading,     setLoading]     = useState(true);
-  const [sending,     setSending]     = useState(false);   // ← v1: double-send guard
+  const [sending,     setSending]     = useState(false);   
   const bottomRef = useRef(null);
 
-  // ── Auth + initial data load ──────────────────────────────────────────────
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) { navigate('/login'); return; }
@@ -51,11 +49,10 @@ export default function Chat() {
     return () => unsub();
   }, [chatId, navigate]);
 
-  // ── Live messages ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (!chatId) return;
     const q = query(
-      collection(db, 'chats', chatId, 'messages'),   // ← v1: consistent sub-collection name
+      collection(db, 'chats', chatId, 'messages'),   
       orderBy('createdAt', 'asc')
     );
     const unsub = onSnapshot(q, (snap) => {
@@ -64,18 +61,16 @@ export default function Chat() {
     return () => unsub();
   }, [chatId]);
 
-  // ── Auto-scroll ───────────────────────────────────────────────────────────
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // ── Send ──────────────────────────────────────────────────────────────────
   const sendMessage = async () => {
-    if (!text.trim() || !currentUser || sending) return;  // ← v1: sending guard
+    if (!text.trim() || !currentUser || sending) return;  
 
     const isClient     = currentUser.uid === chatData?.clientId;
     const isFreelancer = currentUser.uid === chatData?.freelancerId;
-    if (!isClient && !isFreelancer) return;               // ← v2: role check
+    if (!isClient && !isFreelancer) return;               
 
     setSending(true);
     const msgText = text.trim();
@@ -84,7 +79,7 @@ export default function Chat() {
     try {
       await addDoc(collection(db, 'chats', chatId, 'messages'), {
         senderId:   currentUser.uid,
-        senderName: userData?.name || 'User',             // ← v2: name from Firestore
+        senderName: userData?.name || 'User',             
         text:       msgText,
         createdAt:  serverTimestamp(),
       });
@@ -95,7 +90,7 @@ export default function Chat() {
     } catch (err) {
       console.error('Send error:', err);
     } finally {
-      setSending(false);                                  // ← v1: always release lock
+      setSending(false);                                  
     }
   };
 
@@ -106,7 +101,6 @@ export default function Chat() {
     }
   };
 
-  // ── Loading state ─────────────────────────────────────────────────────────
   if (loading) return (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'center',
       minHeight:'100vh', color:'#fff', fontSize:'14px' }}>
@@ -118,13 +112,11 @@ export default function Chat() {
   const otherName = isClient ? chatData?.freelancerName : chatData?.clientName;
   const freelancerCannotSendYet = !isClient && messages.length === 0;
 
-  // ← v1: back to /messages routes, not dashboard
   const backPath  = isClient ? '/client/messages' : '/freelancer/messages';
 
   return (
     <div className="chat-shell">
 
-      {/* ── Header ── */}
       <div className="chat-header">
         <button className="chat-back" onClick={() => navigate(backPath)}>
           ← Back
@@ -133,7 +125,7 @@ export default function Chat() {
           <div className="chat-peer-av">{getInitials(otherName || 'U')}</div>
           <div>
             <p className="chat-peer-name">{otherName || 'User'}</p>
-            {/* ← v1: show project title when available */}
+            
             {chatData?.projectTitle
               ? <p className="chat-peer-role">{chatData.projectTitle}</p>
               : <p className="chat-peer-role">{isClient ? 'Freelancer' : 'Client'}</p>
@@ -142,7 +134,6 @@ export default function Chat() {
         </div>
       </div>
 
-      {/* ── Messages ── */}
       <div className="chat-messages">
         {messages.length === 0 && (
           <div className="chat-empty">
@@ -157,7 +148,7 @@ export default function Chat() {
           return (
             <div key={msg.id}
               className={`chat-bubble-wrap ${isMine ? 'mine' : 'theirs'}`}>
-              {/* ← v2: avatar only on received messages */}
+              
               {!isMine && (
                 <div className="chat-bubble-av">{getInitials(msg.senderName)}</div>
               )}
@@ -175,7 +166,6 @@ export default function Chat() {
         <div ref={bottomRef} />
       </div>
 
-      {/* ── Input ── */}
       <div className="chat-input-row">
         <textarea
           className="chat-input"
@@ -195,7 +185,7 @@ export default function Chat() {
           onClick={sendMessage}
           disabled={!text.trim() || sending || freelancerCannotSendYet}
         >
-          {sending ? '...' : 'Send'}        {/* ← v1: sending feedback */}
+          {sending ? '...' : 'Send'}        
         </button>
       </div>
     </div>

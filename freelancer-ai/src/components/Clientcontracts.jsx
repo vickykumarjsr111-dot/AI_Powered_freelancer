@@ -38,7 +38,6 @@ export default function ClientContracts() {
 
   const navigate = useNavigate();
 
-  // ── Message handler (inside component → has access to userData + navigate) ──
   const handleMessage = async (contract) => {
     try {
       const chatsQ = query(
@@ -72,7 +71,6 @@ export default function ClientContracts() {
     }
   };
 
-  // ── Auth + realtime listeners ──
   useEffect(() => {
     let unsubProposals = null;
     let unsubContracts = null;
@@ -123,14 +121,13 @@ export default function ClientContracts() {
     if (routes[id]) navigate(routes[id]);
   };
 
-  // ── Accept proposal → create contract → close job ──
   const acceptProposal = async (proposal) => {
     setUpdating(proposal.id);
     try {
-      // 1. Mark proposal accepted
+      
       await updateDoc(doc(db, 'proposals', proposal.id), { status: 'accepted' });
 
-      // 2. Create contract
+      
       await addDoc(collection(db, 'contracts'), {
         clientId:       auth.currentUser.uid,
         clientName:     userData?.name || 'Client',
@@ -145,7 +142,6 @@ export default function ClientContracts() {
         deadline:       'Not specified',
       });
 
-      // 3. Close the job so no freelancer can see it anymore
       if (proposal.jobId) {
         await updateDoc(doc(db, 'jobs', proposal.jobId), { open: false });
       }
@@ -157,7 +153,6 @@ export default function ClientContracts() {
     }
   };
 
-  // ── Reject proposal ──
   const rejectProposal = async (proposalId) => {
     setUpdating(proposalId);
     try {
@@ -169,7 +164,6 @@ export default function ClientContracts() {
     }
   };
 
-  // ── Update contract status ──
   const updateContractStatus = async (contractId, status) => {
     setUpdating(contractId);
     try {
@@ -209,7 +203,6 @@ export default function ClientContracts() {
   return (
     <div className="cc-shell">
 
-      {/* ── Sidebar ── */}
       <aside className="cc-sidebar">
         <div className="cc-brand">
           <div className="cc-brand-icon">
@@ -251,7 +244,6 @@ export default function ClientContracts() {
         </div>
       </aside>
 
-      {/* ── Main ── */}
       <main className="cc-main">
         <div className="cc-header">
           <div>
@@ -260,7 +252,6 @@ export default function ClientContracts() {
           </div>
         </div>
 
-        {/* ── Stats ── */}
         <div className="cc-stats">
           {[
             { label: 'Total Contracts', value: counts.all              },
@@ -275,7 +266,6 @@ export default function ClientContracts() {
           ))}
         </div>
 
-        {/* ── Tabs ── */}
         <div className="cc-tabs">
           <button
             className={`cc-tab-btn ${tab === 'proposals' ? 'cc-tab-btn--active' : ''}`}
@@ -292,7 +282,6 @@ export default function ClientContracts() {
           </button>
         </div>
 
-        {/* ── Proposals Tab ── */}
         {tab === 'proposals' && (
           <div>
             {proposals.length === 0 ? (
@@ -300,7 +289,6 @@ export default function ClientContracts() {
             ) : (
               <div className="cc-list">
 
-                {/* Pending */}
                 {pendingProposals.length > 0 && (
                   <>
                     <p style={{ color:'#888', fontSize:'13px', marginBottom:'8px' }}>
@@ -343,7 +331,6 @@ export default function ClientContracts() {
                   </>
                 )}
 
-                {/* Reviewed */}
                 {reviewedProposals.length > 0 && (
                   <>
                     <p style={{ color:'#888', fontSize:'13px', margin:'16px 0 8px' }}>
@@ -376,7 +363,6 @@ export default function ClientContracts() {
           </div>
         )}
 
-        {/* ── Contracts Tab ── */}
         {tab === 'contracts' && (
           <div>
             <div className="cc-filters">

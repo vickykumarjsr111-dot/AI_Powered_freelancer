@@ -5,7 +5,7 @@ import { auth, db } from '../firebase';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import {
   doc, getDoc, collection, onSnapshot,
-  orderBy, query, where              
+  orderBy, query, where
 } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import './BrowseJobs.css';
@@ -23,6 +23,7 @@ export default function BrowseJobs() {
   const navigate = useNavigate();
 
   const [userData, setUserData]               = useState(null);
+  const [uid, setUid]                         = useState(null);
   const [jobs, setJobs]                       = useState([]);
   const [savedJobs, setSavedJobs]             = useState(new Set());
   const [searchTerm, setSearchTerm]           = useState('');
@@ -38,8 +39,17 @@ export default function BrowseJobs() {
       if (!currentUser) { navigate('/login'); return; }
       try {
         const snap = await getDoc(doc(db, 'users', currentUser.uid));
-        if (snap.exists()) setUserData(snap.data());
-        else navigate('/login');
+        if (!snap.exists()) { navigate('/login'); return; }
+
+        const data = snap.data();
+
+        if (data.role?.toLowerCase() === 'client') {
+          navigate('/client/dashboard', { replace: true });
+          return;
+        }
+
+        setUserData(data);
+        setUid(currentUser.uid);
       } catch (err) {
         console.error(err);
       } finally {
@@ -47,17 +57,28 @@ export default function BrowseJobs() {
       }
     });
 
+    return () => unsub();
+  }, [navigate]);
+
+  useEffect(() => {
     const q = query(
       collection(db, 'jobs'),
-      where('open', '==', true),      
+      where('status', '==', 'open'),
       orderBy('createdAt', 'desc')
     );
-    const unsubJobs = onSnapshot(q, (snap) => {
-      setJobs(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
 
-    return () => { unsub(); unsubJobs(); };
-  }, [navigate]);
+    const unsubJobs = onSnapshot(
+      q,
+      (snap) => {
+        setJobs(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      },
+      (err) => {
+        console.error('Jobs listener error:', err);
+      }
+    );
+
+    return () => unsubJobs();
+  }, []); 
 
   useEffect(() => {
     const handle = (e) => {
@@ -97,7 +118,7 @@ export default function BrowseJobs() {
 
   const filteredJobs = jobs.filter((job) => {
     const searchMatch =
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (job.clientName || '').toLowerCase().includes(searchTerm.toLowerCase());
     const skillMatch =
       selectedSkill === 'All' || (job.skills || []).includes(selectedSkill);
@@ -123,12 +144,12 @@ export default function BrowseJobs() {
 
         <nav className="browse-nav">
           {[
-            { id: 'dashboard', label: 'Dashboard'   },
-            { id: 'jobs',      label: 'Browse Jobs'  },
-            { id: 'proposals', label: 'Proposals'    },
-            { id: 'messages',  label: 'Messages'     },
-            { id: 'earnings',  label: 'Earnings'     },
-            { id: 'settings',  label: 'Settings'     },
+            { id: 'dashboard', label: 'Dashboard'  },
+            { id: 'jobs',      label: 'Browse Jobs' },
+            { id: 'proposals', label: 'Proposals'   },
+            { id: 'messages',  label: 'Messages'    },
+            { id: 'earnings',  label: 'Earnings'    },
+            { id: 'settings',  label: 'Settings'    },
           ].map((item) => (
             <button key={item.id}
               className={`nav-btn ${item.id === 'jobs' ? 'nav-btn--active' : ''}`}
@@ -158,15 +179,10 @@ export default function BrowseJobs() {
                 </div>
               </div>
               <div className="bpopup-divider" />
-              <button
-  className="bpopup-item"
-  onClick={() => {
-    setProfileMenuOpen(false);
-    navigate('/freelancer/profile');
-  }}
->
-  📝 Update Profile
-</button>
+              <button className="bpopup-item"
+                onClick={() => { setProfileMenuOpen(false); navigate('/freelancer/profile'); }}>
+                📝 &nbsp;Update Profile
+              </button>
               <button className="bpopup-item"
                 onClick={() => { setProfileMenuOpen(false); navigate('/freelancer/settings'); }}>
                 ⚙️ &nbsp;Settings
@@ -283,21 +299,21 @@ export default function BrowseJobs() {
         <div className="job-modal-overlay"
           onMouseDown={(e) => { if (e.target === e.currentTarget) setSelectedJob(null); }}>
           <div className="job-modal">
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <h2>{selectedJob.title}</h2>
               <button onClick={() => setSelectedJob(null)}
-                style={{ background:'none', border:'none', color:'#888',
-                  fontSize:'22px', cursor:'pointer', lineHeight:1 }}>×</button>
+                style={{ background: 'none', border: 'none', color: '#888',
+                  fontSize: '22px', cursor: 'pointer', lineHeight: 1 }}>×</button>
             </div>
             <p className="modal-company">{selectedJob.clientName || 'Client'}</p>
-            <div style={{ display:'flex', gap:'12px', fontSize:'13px', color:'#aaa', margin:'8px 0' }}>
+            <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: '#aaa', margin: '8px 0' }}>
               <span>${selectedJob.budget}</span>
               <span>·</span>
               <span>{selectedJob.duration}</span>
               <span>·</span>
               <span>{selectedJob.experience || 'Any level'}</span>
             </div>
-            <p style={{ fontSize:'14px', color:'#ccc', lineHeight:1.6 }}>
+            <p style={{ fontSize: '14px', color: '#ccc', lineHeight: 1.6 }}>
               {selectedJob.description || 'No description provided.'}
             </p>
             <div className="modal-tags">
@@ -305,13 +321,13 @@ export default function BrowseJobs() {
                 <span key={skill}>{skill}</span>
               ))}
             </div>
-            <div style={{ display:'flex', gap:'8px', marginTop:'16px' }}>
-              <button className="close-modal" style={{ flex:1 }}
+            <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+              <button className="close-modal" style={{ flex: 1 }}
                 onClick={() => setSelectedJob(null)}>
                 Close
               </button>
               <button className="close-modal"
-                style={{ flex:1, background:'#fff', color:'#000' }}
+                style={{ flex: 1, background: '#fff', color: '#000' }}
                 onClick={() => { const j = selectedJob; setSelectedJob(null); handleApply(j); }}>
                 Apply Now
               </button>

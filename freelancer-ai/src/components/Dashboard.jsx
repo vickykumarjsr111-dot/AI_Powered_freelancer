@@ -41,9 +41,6 @@ function formatTimeAgo(timestamp) {
   return days === 1 ? "Yesterday" : `${days}d ago`;
 }
 
-// ── Profile strength ──────────────────────────────────────────────────────────
-// userData   = users/{uid}      → name, profilePhoto
-// freelancer = freelancers/{uid}→ bio, skills, hourlyRate, portfolioLink, location
 const PROFILE_CHECKS = [
   { key: "name",          label: "Full name",      weight: 15, src: "user"       },
   { key: "bio",           label: "Bio",             weight: 20, src: "freelancer" },
@@ -73,8 +70,6 @@ function calcProfileStrength(userData, freelancerData) {
   return { score, missing };
 }
 
-// ── Earned this month ─────────────────────────────────────────────────────────
-// Source of truth: payments collection, status === "released"
 function calcEarnedThisMonth(payments) {
   const now   = new Date();
   const year  = now.getFullYear();
@@ -94,28 +89,37 @@ function calcEarnedThisMonth(payments) {
   return total > 0 ? `$${total.toLocaleString()}` : "$0";
 }
 
+function getJobMatch(job, freelancerSkills) {
+  const jobSkills = (job.skills || []).map((s) => s.toLowerCase());
+  if (!freelancerSkills?.length || !jobSkills.length) return { pct: 50, matched: true };
+
+  const normalised = freelancerSkills.map((s) => s.toLowerCase());
+  const hits = normalised.filter((s) => jobSkills.includes(s)).length;
+  const pct  = Math.round((hits / jobSkills.length) * 100);
+  return { pct: Math.max(pct, 10), matched: hits > 0 };
+}
+
 export default function Dashboard() {
-  const [userData, setUserData]         = useState(null);
-  const [uid, setUid]                   = useState(null);
+  const [userData, setUserData]             = useState(null);
+  const [uid, setUid]                       = useState(null);
   const [freelancerData, setFreelancerData] = useState(null);
-  const [payments, setPayments]         = useState([]);
-  const [loading, setLoading]           = useState(true);
-  const [activeNav, setActiveNav]       = useState("dashboard");
-  const [saved, setSaved]               = useState(new Set());
-  const [jobs, setJobs]                 = useState([]);
-  const [proposals, setProposals]       = useState([]);
-  const [contracts, setContracts]       = useState([]);
-  const [messages, setMessages]         = useState([]);
-  const [activity, setActivity]         = useState([]);
-  const [aiInsight, setAiInsight]       = useState("Analyzing market trends...");
+  const [payments, setPayments]             = useState([]);
+  const [loading, setLoading]               = useState(true);
+  const [activeNav, setActiveNav]           = useState("dashboard");
+  const [saved, setSaved]                   = useState(new Set());
+  const [jobs, setJobs]                     = useState([]);
+  const [proposals, setProposals]           = useState([]);
+  const [contracts, setContracts]           = useState([]);
+  const [messages, setMessages]             = useState([]);
+  const [activity, setActivity]             = useState([]);
+  const [aiInsight, setAiInsight]           = useState("Analyzing market trends...");
   const [insightLoading, setInsightLoading] = useState(true);
-  const [selectedJob, setSelectedJob]   = useState(null);
+  const [selectedJob, setSelectedJob]       = useState(null);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen]   = useState(false);
   const profileRef = useRef(null);
   const navigate   = useNavigate();
 
-  // ── Auth: sets uid ONCE → all other listeners depend on uid, not userData ───
   useEffect(() => {
     let unsubUser     = null;
     let unsubPayments = null;
@@ -123,8 +127,6 @@ export default function Dashboard() {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) { navigate("/login"); return; }
       try {
-        // Live listener on users doc — keeps profileViews and name in sync
-        // without causing proposals/contracts/messages to re-subscribe
         unsubUser = onSnapshot(doc(db, "users", user.uid), (liveSnap) => {
           if (liveSnap.exists()) {
             setUserData({ uid: user.uid, ...liveSnap.data() });
@@ -133,14 +135,11 @@ export default function Dashboard() {
           }
         });
 
-        // uid is set ONCE — this is what proposals/contracts/messages depend on
         setUid(user.uid);
 
-        // Freelancer profile for profile strength (one-time read is fine)
         const fSnap = await getDoc(doc(db, "freelancers", user.uid));
         if (fSnap.exists()) setFreelancerData(fSnap.data());
 
-        // Live payments listener for "Earned This Month"
         const paymentsQ = query(
           collection(db, "payments"),
           where("freelancerId", "==", user.uid),
@@ -163,13 +162,17 @@ export default function Dashboard() {
     };
   }, [navigate]);
 
-  // ── Jobs ────────────────────────────────────────────────────────────────────
   useEffect(() => {
-    const q = query(collection(db, "jobs"), where("open", "==", true), orderBy("createdAt", "desc"));
-    return onSnapshot(q, (snap) => setJobs(snap.docs.map((d) => ({ id: d.id, ...d.data() }))));
+    const q = query(
+      collection(db, "jobs"),
+      where("status", "==", "open"),
+      orderBy("createdAt", "desc")
+    );
+    return onSnapshot(q, (snap) =>
+      setJobs(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+    );
   }, []);
 
-  // ── Proposals ───────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!uid) return;
     const q = query(
@@ -177,12 +180,11 @@ export default function Dashboard() {
       where("freelancerId", "==", uid),
       orderBy("createdAt", "desc")
     );
-    return onSnapshot(q, (snap) => {
-      setProposals(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    return onSnapshot(q, (snap) =>
+      setProposals(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+    );
   }, [uid]);
 
-  // ── Contracts ───────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!uid) return;
     const q = query(
@@ -190,12 +192,11 @@ export default function Dashboard() {
       where("freelancerId", "==", uid),
       orderBy("createdAt", "desc")
     );
-    return onSnapshot(q, (snap) => {
-      setContracts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    return onSnapshot(q, (snap) =>
+      setContracts(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+    );
   }, [uid]);
 
-  // ── Messages ────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!uid) return;
     const q = query(
@@ -203,12 +204,11 @@ export default function Dashboard() {
       where("freelancerId", "==", uid),
       orderBy("lastAt", "desc")
     );
-    return onSnapshot(q, (snap) => {
-      setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
+    return onSnapshot(q, (snap) =>
+      setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+    );
   }, [uid]);
 
-  // ── Activity feed ───────────────────────────────────────────────────────────
   useEffect(() => {
     const items = [];
 
@@ -250,7 +250,6 @@ export default function Dashboard() {
     setActivity(items.slice(0, 8));
   }, [proposals, contracts, messages]);
 
-  // ── Groq AI market insight ──────────────────────────────────────────────────
   useEffect(() => {
     if (jobs.length === 0) return;
     const fetchInsight = async () => {
@@ -302,7 +301,6 @@ export default function Dashboard() {
     fetchInsight();
   }, [jobs]);
 
-  // ── Click-outside for profile menu ─────────────────────────────────────────
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target))
@@ -352,12 +350,9 @@ export default function Dashboard() {
   const initials  = getInitials(name);
   const firstName = name.split(" ")[0];
 
-  // ── Computed values ─────────────────────────────────────────────────────────
   const { score: profileScore, missing: profileMissing } = calcProfileStrength(userData, freelancerData);
   const earnedThisMonth = calcEarnedThisMonth(payments);
 
-  // Next missing field hint (pick the highest-weight one not yet filled)
-  // Strength bar colour tier
   const strengthTier =
     profileScore === 100 ? "full" :
     profileScore >= 70   ? "high" :
@@ -366,6 +361,17 @@ export default function Dashboard() {
   const nextHint = profileMissing.length > 0
     ? `Add your ${profileMissing[0].toLowerCase()} to boost visibility.`
     : "Your profile is complete! 🎉";
+
+  const freelancerSkills = freelancerData?.skills || [];
+
+  const jobsWithMatch = jobs.map((job) => ({
+    ...job,
+    ...getJobMatch(job, freelancerSkills),
+  }));
+
+  const matchedJobs = freelancerSkills.length > 0
+    ? jobsWithMatch.filter((j) => j.matched).sort((a, b) => b.pct - a.pct)
+    : jobsWithMatch; 
 
   const STATS = [
     { label: "Profile Views",     value: String(userData?.profileViews || 0), delta: userData?.profileViews > 0 ? "↑ all time" : null },
@@ -376,7 +382,7 @@ export default function Dashboard() {
 
   return (
     <div className="dash-shell">
-      {/* ── Sidebar ── */}
+      
       <aside className={`dash-sidebar ${mobileMenuOpen ? "mobile-open" : ""}`}>
         <div className="dash-brand">
           <div className="brand-icon">
@@ -406,7 +412,6 @@ export default function Dashboard() {
           </button>
         </nav>
 
-        {/* ── Profile row ── */}
         <div className="dash-profile" ref={profileRef}
           onClick={() => setProfileMenuOpen((prev) => !prev)}>
           <div className="profile-av">{initials}</div>
@@ -444,7 +449,6 @@ export default function Dashboard() {
         </div>
       </aside>
 
-      {/* ── Mobile hamburger ── */}
       {createPortal(
         <button
           className={`mobile-menu-btn ${mobileMenuOpen ? "mobile-menu-btn--open" : ""}`}
@@ -458,13 +462,15 @@ export default function Dashboard() {
       <div className={`dash-overlay ${mobileMenuOpen ? "dash-overlay--active" : ""}`}
         onClick={() => setMobileMenuOpen(false)} />
 
-      {/* ── Main ── */}
       <main className="dash-main">
         <div className="dash-header">
           <div>
             <h1 className="dash-greeting">{getGreeting()}, {firstName} 👋</h1>
             <p className="dash-sub">
-              Your AI found <strong>{jobs.length} open jobs</strong> right now
+              {freelancerSkills.length > 0
+                ? <>Your AI found <strong>{matchedJobs.length} matching job{matchedJobs.length !== 1 ? "s" : ""}</strong> for your skills</>
+                : <>Your AI found <strong>{jobs.length} open job{jobs.length !== 1 ? "s" : ""}</strong> right now</>
+              }
             </p>
           </div>
         </div>
@@ -482,19 +488,26 @@ export default function Dashboard() {
         <div className="content-grid">
           <section className="jobs-col">
             <div className="section-hdr">
-              <h2 className="section-title">AI-matched jobs</h2>
+              <h2 className="section-title">
+                {freelancerSkills.length > 0 ? "Matched jobs" : "AI-matched jobs"}
+              </h2>
               <span className="live-chip">Live</span>
             </div>
 
             <div className="job-list">
-              {jobs.length === 0 ? (
+              {matchedJobs.length === 0 ? (
                 <p style={{ color:"#888", fontSize:"14px", padding:"16px 0" }}>
-                  No jobs posted yet. Check back soon!
+                  No matching jobs right now.{" "}
+                  <button
+                    style={{ background:"none", border:"none", color:"#6366f1",
+                      cursor:"pointer", padding:0, fontSize:"inherit" }}
+                    onClick={() => navigate("/freelancer/jobs")}>
+                    Browse all jobs →
+                  </button>
                 </p>
               ) : (
-                jobs.map((job) => {
-                  const match = 85;
-                  const arc   = (match / 100) * CIRC;
+                matchedJobs.map((job) => {
+                  const arc = (job.pct / 100) * CIRC;
                   return (
                     <div key={job.id} className="job-card">
                       <div className="job-top">
@@ -505,7 +518,7 @@ export default function Dashboard() {
                               strokeDasharray={`${arc.toFixed(1)} ${CIRC}`}
                               transform="rotate(-90 18 18)" />
                           </svg>
-                          <span className="match-pct">{match}%</span>
+                          <span className="match-pct">{job.pct}%</span>
                         </div>
                         <div className="job-info">
                           <p className="job-title">{job.title}</p>
@@ -531,9 +544,17 @@ export default function Dashboard() {
                       </div>
 
                       <div className="job-tags">
-                        {(job.skills || []).map((skill) => (
-                          <span key={skill} className="skill-tag">{skill}</span>
-                        ))}
+                        {(job.skills || []).map((skill) => {
+                          const isMatch = freelancerSkills
+                            .map((s) => s.toLowerCase())
+                            .includes(skill.toLowerCase());
+                          return (
+                            <span key={skill}
+                              className={`skill-tag${isMatch ? " skill-tag--match" : ""}`}>
+                              {skill}
+                            </span>
+                          );
+                        })}
                       </div>
 
                       <div className="job-actions">
@@ -551,7 +572,7 @@ export default function Dashboard() {
           </section>
 
           <aside className="right-col">
-            {/* ── Real-time Activity ── */}
+            
             <div className="panel-card">
               <h2 className="section-title">Activity</h2>
               {activity.length === 0 ? (
@@ -573,14 +594,16 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* ── Profile strength (auto-calculated) ── */}
             <div className="panel-card">
               <h2 className="section-title">Profile strength</h2>
               <div className="strength-row">
                 <div className="strength-bar">
-                  <div className={`strength-fill${strengthTier ? ` strength-fill--${strengthTier}` : ""}`} style={{ width: `${profileScore}%` }} />
+                  <div className={`strength-fill${strengthTier ? ` strength-fill--${strengthTier}` : ""}`}
+                    style={{ width: `${profileScore}%` }} />
                 </div>
-                <span className={`strength-pct${strengthTier ? ` strength-pct--${strengthTier}` : ""}`}>{profileScore}%</span>
+                <span className={`strength-pct${strengthTier ? ` strength-pct--${strengthTier}` : ""}`}>
+                  {profileScore}%
+                </span>
               </div>
               <p className="strength-hint">{nextHint}</p>
               {profileScore < 100 && (
@@ -592,7 +615,6 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* ── Live Groq AI Insight ── */}
             <div className="panel-card panel-card--ai">
               <span className="ai-badge">AI Insight</span>
               {insightLoading ? (
@@ -605,7 +627,6 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {/* ── Details Modal ── */}
       {selectedJob && (
         <div className="job-modal-overlay"
           onMouseDown={(e) => { if (e.target === e.currentTarget) setSelectedJob(null); }}>

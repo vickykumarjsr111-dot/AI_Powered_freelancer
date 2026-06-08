@@ -49,8 +49,6 @@ export default function Profile() {
   });
 
   useEffect(() => {
-    // onAuthStateChanged waits for Firebase to rehydrate the session,
-    // so browser back-navigation no longer triggers a spurious redirect to /login.
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         navigate('/login');

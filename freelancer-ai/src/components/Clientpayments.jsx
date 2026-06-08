@@ -133,7 +133,6 @@ export default function ClientPayments() {
   return (
     <div className="cp-shell">
 
-      {/* ── Sidebar ── */}
       <aside className="cp-sidebar">
         <div className="cp-brand">
           <div className="cp-brand-icon">
@@ -173,7 +172,6 @@ export default function ClientPayments() {
         </div>
       </aside>
 
-      {/* ── Main ── */}
       <main className="cp-main">
         <div className="cp-header">
           <div>
@@ -182,7 +180,6 @@ export default function ClientPayments() {
           </div>
         </div>
 
-        {/* Stats */}
         <div className="cp-stats">
           {[
             { label: 'Total Spent',      value: `$${totalSpent.toLocaleString()}`    },
@@ -197,7 +194,6 @@ export default function ClientPayments() {
           ))}
         </div>
 
-        {/* Tabs */}
         <div className="cp-tabs">
           {['overview', 'release funds', 'history'].map(t => (
             <button key={t}
@@ -208,7 +204,6 @@ export default function ClientPayments() {
           ))}
         </div>
 
-        {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div className="cp-overview">
             <div className="cp-panel">
@@ -287,7 +282,6 @@ export default function ClientPayments() {
           </div>
         )}
 
-        {/* Release Funds Tab */}
         {activeTab === 'release funds' && (
           <div>
             <p style={{ color:'#6b7280', fontSize:'13px', marginBottom:'16px' }}>
@@ -338,7 +332,6 @@ export default function ClientPayments() {
           </div>
         )}
 
-        {/* History Tab */}
         {activeTab === 'history' && (
           <div>
             {payments.length === 0 ? (
@@ -374,7 +367,6 @@ export default function ClientPayments() {
         )}
       </main>
 
-      {/* ── Payment Modal ── */}
       {payModal && (
         <div className="cp-modal-overlay"
           onMouseDown={e => { if (e.target === e.currentTarget) setPayModal(null); }}>

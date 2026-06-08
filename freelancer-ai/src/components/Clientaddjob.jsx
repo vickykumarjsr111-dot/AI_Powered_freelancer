@@ -140,7 +140,6 @@ export default function ClientAddJob() {
   return (
     <div className="caj-shell">
 
-      {/* Sidebar */}
       <aside className="caj-sidebar">
         <div className="caj-brand">
           <div className="caj-brand-icon">
@@ -182,7 +181,6 @@ export default function ClientAddJob() {
         </div>
       </aside>
 
-      {/* Main */}
       <main className="caj-main">
         <div className="caj-header">
           <h1 className="caj-title">Post a Job</h1>
@@ -191,14 +189,12 @@ export default function ClientAddJob() {
 
         <div className="caj-layout">
 
-          {/* Form */}
           <div className="caj-form-card">
 
             {successMsg && (
               <div className="caj-success">{successMsg}</div>
             )}
 
-            {/* Title */}
             <div className="caj-field">
               <label>Job Title <span className="caj-required">*</span></label>
               <input
@@ -210,7 +206,6 @@ export default function ClientAddJob() {
               />
             </div>
 
-            {/* Description */}
             <div className="caj-field">
               <label>Job Description <span className="caj-required">*</span></label>
               <textarea
@@ -222,7 +217,6 @@ export default function ClientAddJob() {
               />
             </div>
 
-            {/* Budget + Duration */}
             <div className="caj-row">
               <div className="caj-field">
                 <label>Budget ($) <span className="caj-required">*</span></label>
@@ -246,7 +240,6 @@ export default function ClientAddJob() {
               </div>
             </div>
 
-            {/* Experience Level */}
             <div className="caj-field">
               <label>Experience Level</label>
               <div className="caj-exp-btns">
@@ -262,7 +255,6 @@ export default function ClientAddJob() {
               </div>
             </div>
 
-            {/* Skills */}
             <div className="caj-field">
               <label>Required Skills</label>
               <div className="caj-skill-input-row">
@@ -280,7 +272,6 @@ export default function ClientAddJob() {
                 </button>
               </div>
 
-              {/* Suggestions */}
               <div className="caj-suggestions">
                 {SKILL_SUGGESTIONS.filter(
                   (s) => !form.skills.includes(s) &&
@@ -294,7 +285,6 @@ export default function ClientAddJob() {
                 ))}
               </div>
 
-              {/* Selected skills */}
               {form.skills.length > 0 && (
                 <div className="caj-selected-skills">
                   {form.skills.map((skill) => (
@@ -307,7 +297,6 @@ export default function ClientAddJob() {
               )}
             </div>
 
-            {/* Submit */}
             <button
               className="caj-submit-btn"
               onClick={handleSubmit}
@@ -316,7 +305,6 @@ export default function ClientAddJob() {
             </button>
           </div>
 
-          {/* My Posted Jobs */}
           <div className="caj-jobs-panel">
             <h2 className="caj-panel-title">
               My Posted Jobs

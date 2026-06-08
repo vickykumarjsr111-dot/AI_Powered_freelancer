@@ -26,7 +26,6 @@ export default function App() {
         <Route path="/" element={<Navbar onNavigateToLogin={() => navigate('/login')} />} />
         <Route path="/login" element={<Login onBackToHome={() => navigate('/')} />} />
 
-        {/* Freelancer routes */}
         <Route path="/freelancer/dashboard" element={<Dashboard />} />
         <Route path="/freelancer/profile"   element={<Profile />} />
         <Route path="/freelancer/jobs"      element={<BrowseJobs />} />
@@ -34,14 +33,13 @@ export default function App() {
         <Route path="/freelancer/proposals" element={<FreelancerProposals />} />
         <Route path="/freelancer/earnings"  element={<FreelancerEarnings />} />
 
-        {/* Client routes */}
         <Route path="/client/dashboard" element={<ClientDashboard />} />
         <Route path="/client/messages"  element={<ClientMessages />} />
         <Route path="/client/contracts" element={<ClientContracts />} />
         <Route path="/client/post-job"  element={<ClientAddJob />} />
         <Route path="/client/payments"  element={<ClientPayments />} />
         <Route path="/client/profile"   element={<Profile />} />
-        {/* Shared */}
+        
         <Route path="/chat/:chatId" element={<Chat />} />
         
       </Routes>

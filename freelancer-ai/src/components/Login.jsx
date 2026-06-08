@@ -169,7 +169,6 @@ export default function Login({ onBackToHome }) {
 
       <div className="login-box">
 
-        {/* Logo */}
         <div className="login-header">
           <div className="login-logo">
             <img src="/image.png" alt="Logo" />
@@ -177,7 +176,6 @@ export default function Login({ onBackToHome }) {
           </div>
         </div>
 
-        {/* Tab switcher */}
         <div className="auth-tabs">
           <button
             className={`auth-tab ${tab === 'login' ? 'auth-tab--active' : ''}`}
@@ -193,7 +191,6 @@ export default function Login({ onBackToHome }) {
           </button>
         </div>
 
-        {/* Messages */}
         {error && (
           <div className="auth-message auth-message--error">{error}</div>
         )}
@@ -201,7 +198,6 @@ export default function Login({ onBackToHome }) {
           <div className="auth-message auth-message--success">{success}</div>
         )}
 
-        {/* ── LOGIN FORM ── */}
         {tab === 'login' && (
           <>
             <form className="login-form" onSubmit={handleLogin}>
@@ -261,10 +257,9 @@ export default function Login({ onBackToHome }) {
           </>
         )}
 
-        {/* ── REGISTER FORM ── */}
         {tab === 'register' && (
           <>
-            {/* Role selector */}
+            
             <div className="role-selector">
               {[
                 { value:'freelancer', emoji:'💼', label:'Work as Freelancer' },

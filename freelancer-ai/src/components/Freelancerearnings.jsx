@@ -40,7 +40,6 @@ export default function FreelancerEarnings() {
       const snap = await getDoc(doc(db, 'users', user.uid));
       if (snap.exists()) setUserData(snap.data());
 
-      // Live contracts for this freelancer
       const contractsQ = query(
         collection(db, 'contracts'),
         where('freelancerId', '==', user.uid)
@@ -50,7 +49,6 @@ export default function FreelancerEarnings() {
         setLoading(false);
       });
 
-      // Live payments for this freelancer
       const paymentsQ = query(
         collection(db, 'payments'),
         where('freelancerId', '==', user.uid),
@@ -114,13 +112,11 @@ export default function FreelancerEarnings() {
   const initials = getInitials(name);
   const role     = userData?.role || 'freelancer';
 
-  // Derive totals from completed contracts + payments
   const totalEarned      = payments.filter(p => p.status === 'released').reduce((s, p) => s + (p.amount || 0), 0);
   const pendingEarnings  = payments.filter(p => p.status === 'pending').reduce((s, p) => s + (p.amount || 0), 0);
   const availableBalance = payments.filter(p => p.status === 'released' && !p.withdrawn).reduce((s, p) => s + (p.amount || 0), 0);
   const activeContracts  = contracts.filter(c => c.status === 'active').length;
 
-  // Build monthly chart data from payments
   const monthlyMap = {};
   payments.forEach(p => {
     if (!p.createdAt?.toDate) return;
@@ -146,7 +142,7 @@ export default function FreelancerEarnings() {
       )}
 
       <div className="fe-shell">
-        {/* Sidebar */}
+        
         <aside className={`fe-sidebar ${mobileMenuOpen ? 'fe-sidebar--open' : ''}`}>
           <div className="fe-brand">
             <div className="fe-brand-icon">
@@ -189,7 +185,6 @@ export default function FreelancerEarnings() {
         <div className={`fe-overlay ${mobileMenuOpen ? 'fe-overlay--active' : ''}`}
           onClick={() => setMobileMenuOpen(false)} />
 
-        {/* Main */}
         <main className="fe-main">
           <div className="fe-header">
             <div>
@@ -202,7 +197,6 @@ export default function FreelancerEarnings() {
             </button>
           </div>
 
-          {/* Stats */}
           <div className="fe-stats">
             {[
               { label: 'Total Earned',      value: `$${totalEarned.toLocaleString()}`,     color: '#22c55e' },
@@ -217,7 +211,6 @@ export default function FreelancerEarnings() {
             ))}
           </div>
 
-          {/* Tabs */}
           <div className="fe-tabs">
             {['overview', 'transactions', 'contracts'].map(t => (
               <button key={t}
@@ -228,7 +221,6 @@ export default function FreelancerEarnings() {
             ))}
           </div>
 
-          {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="fe-overview">
               <div className="fe-chart-card">
@@ -279,7 +271,6 @@ export default function FreelancerEarnings() {
             </div>
           )}
 
-          {/* Transactions Tab */}
           {activeTab === 'transactions' && (
             <div className="fe-transactions">
               {payments.length === 0 ? (
@@ -314,7 +305,6 @@ export default function FreelancerEarnings() {
             </div>
           )}
 
-          {/* Contracts Tab */}
           {activeTab === 'contracts' && (
             <div className="fe-contracts-tab">
               {contracts.length === 0 ? (
@@ -358,7 +348,6 @@ export default function FreelancerEarnings() {
         </main>
       </div>
 
-      {/* Withdraw Modal */}
       {withdrawModal && (
         <div className="fe-modal-overlay"
           onMouseDown={e => { if (e.target === e.currentTarget) setWithdrawModal(false); }}>
